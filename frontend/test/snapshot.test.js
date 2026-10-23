@@ -21,6 +21,19 @@ describe('snapshot', () => {
     ])
   })
 
+  it('lists every agent regardless of filters', () => {
+    const all = [
+      'ecommerce-demo',
+      'flight-demo',
+      'hotel-demo',
+      'reservation-demo',
+      'restaurant-demo',
+    ]
+    expect(snapshot.listCalls().agents).toEqual(all)
+    expect(snapshot.listCalls({ source: 'real' }).agents).toEqual(all)
+    expect(snapshot.listCalls({ agent: 'hotel-demo', pageSize: 1 }).agents).toEqual(all)
+  })
+
   it('filters by source', () => {
     const real = snapshot.listCalls({ source: 'real' })
     expect(real.items).toEqual([])

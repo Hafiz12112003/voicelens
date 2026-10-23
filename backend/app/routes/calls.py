@@ -125,9 +125,15 @@ def list_calls():
         }
         for call, n, rank, open_count in rows
     ]
+
+    # Every agent in the database, regardless of filters, so the filter
+    # dropdown always offers the full list.
+    agents = [row[0] for row in db.session.query(Call.agent).distinct().order_by(Call.agent).all()]
+
     return jsonify(
         {
             "items": items,
+            "agents": agents,
             "page": page,
             "page_size": page_size,
             "total": total,

@@ -1,4 +1,11 @@
 {
+  "agents": [
+    "ecommerce-demo",
+    "flight-demo",
+    "hotel-demo",
+    "reservation-demo",
+    "restaurant-demo"
+  ],
   "items": [
     {
       "agent": "reservation-demo",

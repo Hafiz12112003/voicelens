@@ -68,6 +68,7 @@ export function listCalls(params = {}) {
   const start = (page - 1) * pageSize
   return {
     items: filtered.slice(start, start + pageSize),
+    agents: callsData.agents,
     page,
     page_size: pageSize,
     total: filtered.length,
