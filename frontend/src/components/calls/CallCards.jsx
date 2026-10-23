@@ -6,6 +6,8 @@ import Skeleton from '@/components/ui/Skeleton.jsx'
 import { formatDuration } from '@/lib/format.js'
 
 const CARD = 'flex flex-col gap-3 rounded-xl border border-border bg-card p-4'
+// One column on phones, two on tablets, replaced by the table from lg.
+const LIST = 'flex flex-col gap-3 md:grid md:grid-cols-2 lg:hidden'
 
 function SkeletonCard() {
   return (
@@ -34,7 +36,7 @@ function CallCard({ call }) {
         <Link
           to={href}
           onClick={(event) => event.stopPropagation()}
-          className="mono text-sm text-foreground hover:text-primary"
+          className="mono min-w-0 truncate text-sm text-foreground hover:text-primary"
         >
           {call.call_id}
         </Link>
@@ -64,11 +66,11 @@ function CallCard({ call }) {
   )
 }
 
-// Below 768px the table becomes cards. calls === null renders the skeleton.
+// calls === null renders the skeleton.
 export default function CallCards({ calls }) {
   if (calls === null) {
     return (
-      <ul aria-hidden="true" className="flex flex-col gap-3 md:hidden">
+      <ul aria-hidden="true" className={LIST}>
         {Array.from({ length: 4 }, (_, index) => (
           <SkeletonCard key={index} />
         ))}
@@ -76,7 +78,7 @@ export default function CallCards({ calls }) {
     )
   }
   return (
-    <ul aria-label="Calls" className="flex flex-col gap-3 md:hidden">
+    <ul aria-label="Calls" className={LIST}>
       {calls.map((call) => (
         <CallCard key={call.call_id} call={call} />
       ))}

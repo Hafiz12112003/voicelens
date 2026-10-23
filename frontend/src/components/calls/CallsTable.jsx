@@ -16,6 +16,18 @@ const COLUMNS = [
   { key: 'severity', label: 'Severity', align: 'left' },
 ]
 
+// Fixed column widths (percent of the table) so the layout never shifts between
+// the skeleton, pages and filter results. They add up to 100.
+const COLUMN_WIDTHS = [
+  'w-[24%]',
+  'w-[16%]',
+  'w-[11%]',
+  'w-[11%]',
+  'w-[11%]',
+  'w-[12%]',
+  'w-[15%]',
+]
+
 const HEAD = 'sticky top-0 z-10 h-11 border-b border-border bg-surface px-4 text-xs font-medium'
 const CELL = 'border-b border-border px-4'
 const SKELETON_ROWS = 8
@@ -30,7 +42,7 @@ function HeaderCell({ column, params, onSort, interactive }) {
       <Icon aria-hidden="true" className={cn('size-4', active ? 'text-primary' : 'text-faint')} />
     </>
   )
-  const shared = 'inline-flex h-8 items-center gap-1 rounded-sm'
+  const shared = 'inline-flex h-8 items-center gap-1 whitespace-nowrap rounded-sm'
 
   return (
     <th
@@ -93,16 +105,19 @@ function CallRow({ call }) {
       onClick={() => navigate(href)}
       className="h-11 cursor-pointer transition-colors duration-(--dur) ease-(--ease) hover:bg-accent"
     >
-      <td className={CELL}>
+      <td className={cn(CELL, 'truncate')}>
         <Link
           to={href}
+          title={call.call_id}
           onClick={(event) => event.stopPropagation()}
           className="mono text-sm text-foreground hover:text-primary"
         >
           {call.call_id}
         </Link>
       </td>
-      <td className={cn(CELL, 'text-base')}>{call.agent}</td>
+      <td className={cn(CELL, 'truncate text-base')} title={call.agent}>
+        {call.agent}
+      </td>
       <td className={CELL}>
         <SourceBadge source={call.source} />
       </td>
@@ -120,17 +135,23 @@ function CallRow({ call }) {
   )
 }
 
-// calls === null renders the skeleton (same header, same row height).
+// calls === null renders the skeleton (same header, same columns, same row height).
+// Shown from the lg breakpoint; below it the cards take over (see CallCards).
 export default function CallsTable({ calls, params, onSort }) {
   const loading = calls === null
 
   return (
     <div
       aria-hidden={loading ? 'true' : undefined}
-      className="hidden overflow-clip rounded-xl border border-border bg-card md:block"
+      className="hidden overflow-clip rounded-xl border border-border bg-card lg:block"
     >
-      <table className="w-full border-separate border-spacing-0 text-base [&_tbody_tr:last-child_td]:border-b-0">
+      <table className="w-full table-fixed border-separate border-spacing-0 text-base [&_tbody_tr:last-child_td]:border-b-0">
         <caption className="sr-only">Calls</caption>
+        <colgroup>
+          {COLUMN_WIDTHS.map((width, index) => (
+            <col key={index} className={width} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
             {COLUMNS.map((column) => (
