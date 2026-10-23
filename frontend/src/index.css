@@ -1,8 +1,13 @@
 ﻿@import "tailwindcss";
+@import "tw-animate-css";
 @import "./styles/tokens.css";
 
-/* Expose the design tokens to Tailwind. Tailwind's defaults are reset so only
-   token-based colors, sizes, radii and (no) shadows exist. */
+@custom-variant dark (&:is(.dark *));
+
+/* Tailwind color names follow shadcn's semantic names, mapped onto the tokens.
+   Gotcha: "primary" is the blue token (--accent); "accent" is the soft
+   highlight/hover surface (--accent-soft). Tailwind defaults are reset so only
+   token-based colors, sizes and radii exist, and no shadows. */
 @theme inline {
   --color-*: initial;
   --font-*: initial;
@@ -11,16 +16,29 @@
   --shadow-*: initial;
   --drop-shadow-*: initial;
 
-  --color-bg: var(--bg);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
   --color-surface: var(--surface);
   --color-raised: var(--raised);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--raised);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--bg);
+  --color-secondary: var(--raised);
+  --color-secondary-foreground: var(--text);
+  --color-muted: var(--raised);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent: var(--accent-soft);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--high);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
-  --color-fg: var(--text);
-  --color-muted: var(--text-muted);
+  --color-input: var(--border-strong);
+  --color-ring: var(--accent);
   --color-faint: var(--text-faint);
-  --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
   --color-high: var(--high);
   --color-medium: var(--medium);
   --color-low: var(--low);
@@ -41,6 +59,10 @@
   --text-xl--line-height: 36px;
 
   /* 6px chips, 8px controls, 12px cards */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius-lg);
   --radius-chip: var(--radius-sm);
   --radius-ctl: var(--radius);
   --radius-card: var(--radius-lg);
