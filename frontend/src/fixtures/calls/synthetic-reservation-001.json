@@ -1,0 +1,83 @@
+{
+  "agent": "reservation-demo",
+  "call_id": "synthetic-reservation-001",
+  "findings": [
+    {
+      "call_id": "synthetic-reservation-001",
+      "evidence": "\"What date would you like to reserve?\" repeats turn 0 (similarity 0.88)",
+      "explanation": "The agent said almost the same thing again instead of moving the call forward.",
+      "id": 5,
+      "note": null,
+      "rule": "repeated_agent_turn",
+      "severity": "medium",
+      "status": "open",
+      "turn_index": 2
+    },
+    {
+      "call_id": "synthetic-reservation-001",
+      "evidence": "\"What date would you like to reserve?\" repeats turn 2 (similarity 1.00)",
+      "explanation": "The agent said almost the same thing again instead of moving the call forward.",
+      "id": 6,
+      "note": null,
+      "rule": "repeated_agent_turn",
+      "severity": "medium",
+      "status": "open",
+      "turn_index": 4
+    }
+  ],
+  "outcome": "escalated",
+  "review_status": "unreviewed",
+  "source": "synthetic",
+  "started_at": "2026-10-23T11:00:00Z",
+  "stats": {
+    "avg_latency_ms": 450,
+    "duration_ms": 11400,
+    "finding_count": 2,
+    "max_latency_ms": 500,
+    "response_count": 2,
+    "turn_count": 5
+  },
+  "tool_events": [],
+  "turns": [
+    {
+      "end_ms": 2500,
+      "i": 0,
+      "latency_ms": null,
+      "speaker": "agent",
+      "start_ms": 0,
+      "text": "Hello, what date would you like to reserve?"
+    },
+    {
+      "end_ms": 4500,
+      "i": 1,
+      "latency_ms": null,
+      "speaker": "customer",
+      "start_ms": 3000,
+      "text": "Next Friday evening"
+    },
+    {
+      "end_ms": 7000,
+      "i": 2,
+      "latency_ms": 500,
+      "speaker": "agent",
+      "start_ms": 5000,
+      "text": "What date would you like to reserve?"
+    },
+    {
+      "end_ms": 9000,
+      "i": 3,
+      "latency_ms": null,
+      "speaker": "customer",
+      "start_ms": 7500,
+      "text": "I said next Friday evening"
+    },
+    {
+      "end_ms": 11400,
+      "i": 4,
+      "latency_ms": 400,
+      "speaker": "agent",
+      "start_ms": 9400,
+      "text": "What date would you like to reserve?"
+    }
+  ]
+}

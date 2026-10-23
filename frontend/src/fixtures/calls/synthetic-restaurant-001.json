@@ -1,0 +1,83 @@
+{
+  "agent": "restaurant-demo",
+  "call_id": "synthetic-restaurant-001",
+  "findings": [
+    {
+      "call_id": "synthetic-restaurant-001",
+      "evidence": "customer (turn 1): \"Two vegetarian thalis please\"; agent: \"Confirmed, two chicken thalis. Anything else?\"; customer asked for vegetarian; agent mentioned \"chicken\"",
+      "explanation": "The customer asked for vegetarian food but the agent's confirmation includes a non-vegetarian item.",
+      "id": 1,
+      "note": null,
+      "rule": "ignored_constraint",
+      "severity": "high",
+      "status": "open",
+      "turn_index": 2
+    },
+    {
+      "call_id": "synthetic-restaurant-001",
+      "evidence": "gap 2400 ms (customer ended at 8600 ms, agent started at 11000 ms)",
+      "explanation": "The agent took 2.4 seconds to respond after the customer finished.",
+      "id": 2,
+      "note": null,
+      "rule": "high_latency",
+      "severity": "medium",
+      "status": "open",
+      "turn_index": 4
+    }
+  ],
+  "outcome": "completed",
+  "review_status": "unreviewed",
+  "source": "synthetic",
+  "started_at": "2026-10-20T10:00:00Z",
+  "stats": {
+    "avg_latency_ms": 1400,
+    "duration_ms": 13000,
+    "finding_count": 2,
+    "max_latency_ms": 2400,
+    "response_count": 2,
+    "turn_count": 5
+  },
+  "tool_events": [],
+  "turns": [
+    {
+      "end_ms": 2500,
+      "i": 0,
+      "latency_ms": null,
+      "speaker": "agent",
+      "start_ms": 0,
+      "text": "Welcome to Spice Garden, what can I get you?"
+    },
+    {
+      "end_ms": 4800,
+      "i": 1,
+      "latency_ms": null,
+      "speaker": "customer",
+      "start_ms": 3000,
+      "text": "Two vegetarian thalis please"
+    },
+    {
+      "end_ms": 7200,
+      "i": 2,
+      "latency_ms": 400,
+      "speaker": "agent",
+      "start_ms": 5200,
+      "text": "Confirmed, two chicken thalis. Anything else?"
+    },
+    {
+      "end_ms": 8600,
+      "i": 3,
+      "latency_ms": null,
+      "speaker": "customer",
+      "start_ms": 7800,
+      "text": "That is all"
+    },
+    {
+      "end_ms": 13000,
+      "i": 4,
+      "latency_ms": 2400,
+      "speaker": "agent",
+      "start_ms": 11000,
+      "text": "Thank you, your order is placed."
+    }
+  ]
+}
