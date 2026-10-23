@@ -19,9 +19,9 @@ def create_app(test_config=None):
     register_error_handlers(app)
 
     from app import models  # noqa: F401  (registers tables)
-    from app.routes import calls, findings, health, imports
+    from app.routes import calls, findings, health, imports, summary
 
-    for module in (health, imports, calls, findings):
+    for module in (health, imports, calls, findings, summary):
         app.register_blueprint(module.bp)
 
     with app.app_context():
