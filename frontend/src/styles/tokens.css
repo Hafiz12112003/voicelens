@@ -1,0 +1,8 @@
+﻿:root {
+  --bg:#0b0d12; --surface:#11141b; --raised:#161a23; --border:#232834; --border-strong:#2e3545;
+  --text:#e6e9f0; --text-muted:#8b93a7; --text-faint:#5d6579;
+  --accent:#4c8dff; --accent-soft:rgba(76,141,255,.12);
+  --high:#f0616d; --medium:#f5a524; --low:#6b7280; --success:#3fb950;
+  --font-ui:"Inter",system-ui,sans-serif; --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  --radius-sm:6px; --radius:8px; --radius-lg:12px; --ease:cubic-bezier(.2,0,0,1); --dur:160ms;
+}
