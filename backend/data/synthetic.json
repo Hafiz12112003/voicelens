@@ -1,0 +1,69 @@
+﻿[
+  {
+    "call_id": "synthetic-restaurant-001",
+    "agent": "restaurant-demo",
+    "source": "synthetic",
+    "started_at": "2026-10-20T10:00:00Z",
+    "turns": [
+      {"i": 0, "speaker": "agent", "text": "Welcome to Spice Garden, what can I get you?", "start_ms": 0, "end_ms": 2500},
+      {"i": 1, "speaker": "customer", "text": "Two vegetarian thalis please", "start_ms": 3000, "end_ms": 4800},
+      {"i": 2, "speaker": "agent", "text": "Confirmed, two chicken thalis. Anything else?", "start_ms": 5200, "end_ms": 7200},
+      {"i": 3, "speaker": "customer", "text": "That is all", "start_ms": 7800, "end_ms": 8600},
+      {"i": 4, "speaker": "agent", "text": "Thank you, your order is placed.", "start_ms": 11000, "end_ms": 13000}
+    ],
+    "outcome": "completed"
+  },
+  {
+    "call_id": "synthetic-hotel-001",
+    "agent": "hotel-demo",
+    "source": "synthetic",
+    "started_at": "2026-10-21T09:30:00Z",
+    "turns": [
+      {"i": 0, "speaker": "agent", "text": "Hello, thanks for calling the hotel.", "start_ms": 0, "end_ms": 2000},
+      {"i": 1, "speaker": "customer", "text": "I need a non smoking room for two nights", "start_ms": 2500, "end_ms": 5000},
+      {"i": 2, "speaker": "agent", "text": "Booked a smoking room for two nights.", "start_ms": 5600, "end_ms": 7600}
+    ],
+    "outcome": "completed"
+  },
+  {
+    "call_id": "synthetic-flight-001",
+    "agent": "flight-demo",
+    "source": "synthetic",
+    "started_at": "2026-10-22T14:00:00Z",
+    "turns": [
+      {"i": 0, "speaker": "agent", "text": "Hello, where would you like to fly?", "start_ms": 0, "end_ms": 2000},
+      {"i": 1, "speaker": "customer", "text": "Book me a flight to Delhi tomorrow morning", "start_ms": 2500, "end_ms": 5000},
+      {"i": 2, "speaker": "agent", "text": "One moment while I book that.", "start_ms": 5500, "end_ms": 7000},
+      {"i": 3, "speaker": "agent", "text": "Your flight is booked. Have a great trip!", "start_ms": 7500, "end_ms": 9500}
+    ],
+    "tool_events": [{"after_turn": 2, "name": "create_booking", "status": "failed"}],
+    "outcome": "completed"
+  },
+  {
+    "call_id": "synthetic-ecommerce-001",
+    "agent": "ecommerce-demo",
+    "source": "synthetic",
+    "started_at": "2026-10-22T16:00:00Z",
+    "turns": [
+      {"i": 0, "speaker": "agent", "text": "Hi, how can I help with your order?", "start_ms": 0, "end_ms": 2000},
+      {"i": 1, "speaker": "customer", "text": "Where is my package?", "start_ms": 2400, "end_ms": 3600},
+      {"i": 2, "speaker": "agent", "text": "Let me check. It ships tomorrow.", "start_ms": 4000, "end_ms": 6000}
+    ],
+    "tool_events": [{"after_turn": 1, "name": "lookup_order", "status": "ok"}],
+    "outcome": "completed"
+  },
+  {
+    "call_id": "synthetic-reservation-001",
+    "agent": "reservation-demo",
+    "source": "synthetic",
+    "started_at": "2026-10-23T11:00:00Z",
+    "turns": [
+      {"i": 0, "speaker": "agent", "text": "Hello, what date would you like to reserve?", "start_ms": 0, "end_ms": 2500},
+      {"i": 1, "speaker": "customer", "text": "Next Friday evening", "start_ms": 3000, "end_ms": 4500},
+      {"i": 2, "speaker": "agent", "text": "What date would you like to reserve?", "start_ms": 5000, "end_ms": 7000},
+      {"i": 3, "speaker": "customer", "text": "I said next Friday evening", "start_ms": 7500, "end_ms": 9000},
+      {"i": 4, "speaker": "agent", "text": "What date would you like to reserve?", "start_ms": 9400, "end_ms": 11400}
+    ],
+    "outcome": "escalated"
+  }
+]
