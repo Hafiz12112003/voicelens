@@ -6,3 +6,10 @@ __pycache__/
 node_modules/
 dist/
 .pytest_cache/
+
+# Real-call drafts and recordings stay local. Publish transcript excerpts only.
+backend/data/drafts/
+*.wav
+*.mp3
+*.m4a
+*.webm
