@@ -5,6 +5,7 @@ import PageHeader from '@/components/PageHeader.jsx'
 import EmptyState from '@/components/states/EmptyState.jsx'
 import ErrorState from '@/components/states/ErrorState.jsx'
 import KpiCard from '@/components/summary/KpiCard.jsx'
+import RuleChart from '@/components/summary/RuleChart.jsx'
 import Button from '@/components/ui/Button.jsx'
 import { buttonVariants } from '@/components/ui/buttonVariants.js'
 import Skeleton from '@/components/ui/Skeleton.jsx'
@@ -126,6 +127,7 @@ export default function SummaryPage() {
         <p className="mt-4 text-sm text-muted-foreground">
           {`Escalated calls: ${data.escalated_calls}. Reported separately; they are not counted as failures.`}
         </p>
+        <RuleChart perRule={data.per_rule} />
       </div>
     )
   }

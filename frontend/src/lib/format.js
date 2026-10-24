@@ -19,6 +19,12 @@ export function formatPercent(ratio) {
   return `${Math.round(ratio * 1000) / 10}%`
 }
 
+// "repeated_agent_turn" -> "Repeated agent turn"
+export function ruleLabel(rule) {
+  const text = String(rule || '').replace(/_/g, ' ')
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
 export const SEVERITY_LABELS = { high: 'High', medium: 'Medium', low: 'Low' }
 
 export const REVIEW_LABELS = {

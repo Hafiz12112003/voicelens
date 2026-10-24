@@ -18,7 +18,10 @@ function makeSummary(source = 'real', overrides = {}) {
     findings: { total: 6, open: 5, confirmed: 1, dismissed: 0 },
     failure: { calls_with_confirmed_high: 0, rate: 0 },
     latency: { count: 7, avg_ms: 743, p95_ms: 2400, max_ms: 2400 },
-    per_rule: [],
+    per_rule: [
+      { rule: 'high_latency', total: 1, open: 1, confirmed: 0, dismissed: 0 },
+      { rule: 'repeated_agent_turn', total: 2, open: 1, confirmed: 1, dismissed: 0 },
+    ],
     daily: [
       { date: '2026-10-20', calls: 1, findings: 2, avg_latency_ms: 1400 },
       { date: '2026-10-21', calls: 1, findings: 1, avg_latency_ms: 600 },
@@ -71,6 +74,14 @@ describe('summary page', () => {
   it('reports escalated calls separately from failures', async () => {
     renderPage()
     expect(await screen.findByText(/Escalated calls: 1\./)).toHaveTextContent(/not counted as failures/)
+  })
+
+  it('shows the findings per rule under the cards', async () => {
+    renderPage()
+    expect(await screen.findByRole('heading', { name: 'Findings per rule' })).toBeInTheDocument()
+    const table = screen.getByRole('table', { name: 'Findings per rule by review status' })
+    expect(within(table).getAllByRole('row')).toHaveLength(3)
+    expect(within(table).getByRole('rowheader', { name: 'High latency' })).toBeInTheDocument()
   })
 
   it('shows an honest empty state for real calls and can switch to synthetic', async () => {
