@@ -4,11 +4,36 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/App.jsx'
 import SnapshotBanner from '@/components/layout/SnapshotBanner.jsx'
+import { ApiError, getCall } from '@/services/api.js'
 
 const mode = vi.hoisted(() => ({ snapshot: false }))
 vi.mock('@/hooks/useSnapshotMode.js', () => ({ useSnapshotMode: () => mode.snapshot }))
+vi.mock('@/services/api.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual, getCall: vi.fn() }
+})
 
 const STORAGE_KEY = 'voicelens.sidebar-collapsed'
+
+const CALL_DETAIL = {
+  call_id: 'synthetic-flight-001',
+  agent: 'Flight Agent',
+  source: 'synthetic',
+  started_at: '2026-01-01T10:00:00Z',
+  outcome: 'completed',
+  review_status: 'unreviewed',
+  stats: {
+    duration_ms: 60000,
+    turn_count: 4,
+    finding_count: 1,
+    response_count: 2,
+    avg_latency_ms: 1200,
+    max_latency_ms: 2000,
+  },
+  turns: [],
+  tool_events: [],
+  findings: [],
+}
 
 function renderAt(path) {
   return render(
@@ -24,6 +49,7 @@ function mainNav() {
 
 beforeEach(() => {
   mode.snapshot = false
+  getCall.mockReset()
 })
 
 describe('app shell', () => {
@@ -46,11 +72,20 @@ describe('app shell', () => {
     expect(mainNav().getByRole('link', { name: 'Summary' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('shows the call id on the inspector route', () => {
+  it('shows the call id on the inspector route', async () => {
+    getCall.mockResolvedValue(CALL_DETAIL)
     renderAt('/calls/synthetic-flight-001')
-    expect(screen.getByRole('heading', { level: 1, name: 'Call Inspector' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'synthetic-flight-001' }),
+    ).toBeInTheDocument()
     expect(screen.getAllByText('synthetic-flight-001').length).toBeGreaterThanOrEqual(2)
     expect(mainNav().getByRole('link', { name: 'Calls' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('shows a not-found state for an unknown call', async () => {
+    getCall.mockRejectedValue(new ApiError('Call not found', { status: 404 }))
+    renderAt('/calls/nope-123')
+    expect(await screen.findByText('No call found with ID nope-123.')).toBeInTheDocument()
   })
 
   it('shows a not-found state for unknown pages', () => {

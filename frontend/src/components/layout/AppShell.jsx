@@ -51,7 +51,7 @@ export default function AppShell() {
           onOpenMobile={() => setMobileOpen(true)}
         />
         <SnapshotBanner visible={snapshot} onRetry={retryLive} />
-        <main id="main" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto outline-none">
+        <main id="main" tabIndex={-1} className="relative min-h-0 flex-1 overflow-y-auto outline-none">
           <div className="mx-auto w-full max-w-[1280px] p-4 md:p-6">
             <Outlet />
           </div>
