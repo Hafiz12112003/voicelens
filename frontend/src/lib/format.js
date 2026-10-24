@@ -8,6 +8,17 @@
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`
 }
 
+export function formatMs(ms) {
+  if (ms === null || ms === undefined) return '\u2014'
+  return `${Math.round(ms).toLocaleString('en-US')} ms`
+}
+
+// Ratios from the API are 0 to 1 (null when undefined). One decimal at most.
+export function formatPercent(ratio) {
+  if (ratio === null || ratio === undefined) return '\u2014'
+  return `${Math.round(ratio * 1000) / 10}%`
+}
+
 export const SEVERITY_LABELS = { high: 'High', medium: 'Medium', low: 'Low' }
 
 export const REVIEW_LABELS = {

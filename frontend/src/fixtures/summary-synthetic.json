@@ -1,0 +1,133 @@
+{
+  "accuracy": {
+    "basis": "Real demo calls only, hand-labeled, small sample. Synthetic calls are never included.",
+    "errors": [],
+    "labeled_calls": 0,
+    "n_items": 0,
+    "per_rule": [
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "high_latency",
+        "tn": 0,
+        "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "repeated_agent_turn",
+        "tn": 0,
+        "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "ignored_constraint",
+        "tn": 0,
+        "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "false_success_claim",
+        "tn": 0,
+        "tp": 0
+      }
+    ],
+    "status": "no_labels"
+  },
+  "calls_analysed": 5,
+  "calls_with_latency": 5,
+  "daily": [
+    {
+      "avg_latency_ms": 1400,
+      "calls": 1,
+      "date": "2026-10-20",
+      "findings": 2
+    },
+    {
+      "avg_latency_ms": 600,
+      "calls": 1,
+      "date": "2026-10-21",
+      "findings": 1
+    },
+    {
+      "avg_latency_ms": 450,
+      "calls": 2,
+      "date": "2026-10-22",
+      "findings": 1
+    },
+    {
+      "avg_latency_ms": 450,
+      "calls": 1,
+      "date": "2026-10-23",
+      "findings": 2
+    }
+  ],
+  "escalated_calls": 1,
+  "failure": {
+    "calls_with_confirmed_high": 0,
+    "rate": 0.0
+  },
+  "findings": {
+    "confirmed": 0,
+    "dismissed": 0,
+    "open": 6,
+    "total": 6
+  },
+  "latency": {
+    "avg_ms": 743,
+    "count": 7,
+    "max_ms": 2400,
+    "p95_ms": 2400
+  },
+  "per_rule": [
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 1,
+      "rule": "high_latency",
+      "total": 1
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 2,
+      "rule": "repeated_agent_turn",
+      "total": 2
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 2,
+      "rule": "ignored_constraint",
+      "total": 2
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 1,
+      "rule": "false_success_claim",
+      "total": 1
+    }
+  ],
+  "scope": {
+    "calls_by_source": {
+      "real": 0,
+      "synthetic": 5
+    },
+    "source": "synthetic"
+  }
+}

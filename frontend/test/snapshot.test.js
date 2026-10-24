@@ -4,11 +4,28 @@ import * as snapshot from '@/services/snapshot.js'
 const ids = (page) => page.items.map((item) => item.call_id)
 
 describe('snapshot', () => {
-  it('serves the summary exactly as stored', () => {
+  it('serves the all-calls summary by default, exactly as stored', () => {
     const summary = snapshot.getSummary()
     expect(summary.calls_analysed).toBe(5)
     expect(summary.scope.source).toBe('all')
     expect(summary.latency.avg_ms).toBe(743)
+  })
+
+  it('serves a separate summary for each source', () => {
+    const real = snapshot.getSummary({ source: 'real' })
+    expect(real.scope.source).toBe('real')
+    expect(real.calls_analysed).toBe(0)
+    const synthetic = snapshot.getSummary({ source: 'synthetic' })
+    expect(synthetic.scope.source).toBe('synthetic')
+    expect(synthetic.calls_analysed).toBe(5)
+    const all = snapshot.getSummary({ source: 'all' })
+    expect(all.scope.source).toBe('all')
+    expect(all.calls_analysed).toBe(5)
+  })
+
+  it('falls back to the all-calls summary for an unknown source', () => {
+    expect(snapshot.getSummary({ source: 'toString' }).scope.source).toBe('all')
+    expect(snapshot.getSummary({ source: 'nope' }).scope.source).toBe('all')
   })
 
   it('lists newest first by default', () => {

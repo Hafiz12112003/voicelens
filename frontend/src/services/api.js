@@ -97,7 +97,7 @@ export function getHealth() {
 }
 
 export function getSummary({ source } = {}) {
-  return read(`/summary${query({ source })}`, () => snapshot.getSummary())
+  return read(`/summary${query({ source })}`, () => snapshot.getSummary({ source }))
 }
 
 export function listCalls({ q, agent, source, severity, sort, order, page, pageSize } = {}) {

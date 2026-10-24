@@ -1,0 +1,108 @@
+{
+  "accuracy": {
+    "basis": "Real demo calls only, hand-labeled, small sample. Synthetic calls are never included.",
+    "errors": [],
+    "labeled_calls": 0,
+    "n_items": 0,
+    "per_rule": [
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "high_latency",
+        "tn": 0,
+        "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "repeated_agent_turn",
+        "tn": 0,
+        "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "ignored_constraint",
+        "tn": 0,
+        "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "false_success_claim",
+        "tn": 0,
+        "tp": 0
+      }
+    ],
+    "status": "no_labels"
+  },
+  "calls_analysed": 0,
+  "calls_with_latency": 0,
+  "daily": [],
+  "escalated_calls": 0,
+  "failure": {
+    "calls_with_confirmed_high": 0,
+    "rate": null
+  },
+  "findings": {
+    "confirmed": 0,
+    "dismissed": 0,
+    "open": 0,
+    "total": 0
+  },
+  "latency": {
+    "avg_ms": null,
+    "count": 0,
+    "max_ms": null,
+    "p95_ms": null
+  },
+  "per_rule": [
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 0,
+      "rule": "high_latency",
+      "total": 0
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 0,
+      "rule": "repeated_agent_turn",
+      "total": 0
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 0,
+      "rule": "ignored_constraint",
+      "total": 0
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 0,
+      "rule": "false_success_claim",
+      "total": 0
+    }
+  ],
+  "scope": {
+    "calls_by_source": {
+      "real": 0,
+      "synthetic": 5
+    },
+    "source": "real"
+  }
+}

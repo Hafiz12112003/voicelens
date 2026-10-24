@@ -1,4 +1,6 @@
-﻿import summaryData from '../fixtures/summary.json'
+﻿import summaryAll from '../fixtures/summary-all.json'
+import summaryReal from '../fixtures/summary-real.json'
+import summarySynthetic from '../fixtures/summary-synthetic.json'
 import callsData from '../fixtures/calls.json'
 
 // Read-only fallback used when the API is unreachable. It serves the bundled
@@ -12,6 +14,8 @@ const detailModules = import.meta.glob('../fixtures/calls/*.json', {
 const details = Object.fromEntries(
   Object.values(detailModules).map((detail) => [detail.call_id, detail]),
 )
+
+const SUMMARIES = { real: summaryReal, synthetic: summarySynthetic, all: summaryAll }
 
 const SEVERITY_RANK = { high: 3, medium: 2, low: 1 }
 
@@ -48,8 +52,11 @@ function matches(item, { q, agent, source, severity }) {
   return true
 }
 
-export function getSummary() {
-  return summaryData
+// One stored summary per source, served as exported. With no source (or an
+// unknown one) it serves "all". The live API defaults to "real" instead; the
+// Summary page always passes a source, so users do not hit the difference.
+export function getSummary({ source } = {}) {
+  return Object.hasOwn(SUMMARIES, source) ? SUMMARIES[source] : summaryAll
 }
 
 export function listCalls(params = {}) {
