@@ -3,6 +3,11 @@ export function dailySeries(daily, key) {
   return (daily || []).map((day) => day[key])
 }
 
+// "1 call", "5 calls"
+export function plural(count, word) {
+  return `${count} ${word}${count === 1 ? '' : 's'}`
+}
+
 // SVG polyline points for a sparkline. Empty string when fewer than two
 // numeric values. Null values are skipped but keep their x position.
 export function sparklinePoints(values, width = 100, height = 28, pad = 2) {

@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import PageHeader from '@/components/PageHeader.jsx'
 import EmptyState from '@/components/states/EmptyState.jsx'
 import ErrorState from '@/components/states/ErrorState.jsx'
+import AccuracyTable from '@/components/summary/AccuracyTable.jsx'
 import KpiCard from '@/components/summary/KpiCard.jsx'
 import RuleChart from '@/components/summary/RuleChart.jsx'
 import Button from '@/components/ui/Button.jsx'
@@ -11,7 +12,7 @@ import { buttonVariants } from '@/components/ui/buttonVariants.js'
 import Skeleton from '@/components/ui/Skeleton.jsx'
 import { useApi } from '@/hooks/useApi.js'
 import { formatMs, formatPercent } from '@/lib/format.js'
-import { dailySeries } from '@/lib/summary.js'
+import { dailySeries, plural } from '@/lib/summary.js'
 import { getSummary } from '@/services/api.js'
 
 const SOURCES = [
@@ -30,10 +31,6 @@ const EMPTY_MESSAGES = {
   real: 'No real calls imported yet. Synthetic calls are kept separate.',
   synthetic: 'No synthetic calls imported yet.',
   all: 'No calls imported yet.',
-}
-
-function plural(count, word) {
-  return `${count} ${word}${count === 1 ? '' : 's'}`
 }
 
 function SummarySkeleton() {
@@ -128,6 +125,7 @@ export default function SummaryPage() {
           {`Escalated calls: ${data.escalated_calls}. Reported separately; they are not counted as failures.`}
         </p>
         <RuleChart perRule={data.per_rule} />
+        <AccuracyTable accuracy={data.accuracy} />
       </div>
     )
   }
