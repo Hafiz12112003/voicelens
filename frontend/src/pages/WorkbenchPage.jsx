@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FileJson } from 'lucide-react'
 import FindingsPanel from '@/components/calls/FindingsPanel.jsx'
+import Lanes from '@/components/calls/Lanes.jsx'
 import Transcript from '@/components/calls/Transcript.jsx'
 import PageHeader from '@/components/PageHeader.jsx'
 import EmptyState from '@/components/states/EmptyState.jsx'
@@ -196,6 +197,7 @@ export default function WorkbenchPage() {
           <Stat label="Avg latency" value={formatMs(stats.avg_latency_ms)} mono />
           <Stat label="Max latency" value={formatMs(stats.max_latency_ms)} mono />
         </dl>
+        <Lanes turns={visible.turns} onSelectTurn={focusTurn} />
         <FindingsPanel
           findings={visible.findings}
           activeId={activeFindingId}

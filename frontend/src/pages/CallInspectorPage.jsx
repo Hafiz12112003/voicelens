@@ -2,6 +2,7 @@
 import { ArrowLeft, PhoneOff } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import FindingsPanel from '@/components/calls/FindingsPanel.jsx'
+import Lanes from '@/components/calls/Lanes.jsx'
 import ReviewBadge from '@/components/calls/ReviewBadge.jsx'
 import SourceBadge from '@/components/calls/SourceBadge.jsx'
 import Timeline from '@/components/calls/Timeline.jsx'
@@ -204,6 +205,9 @@ export default function CallInspectorPage() {
       </header>
       <div className="mt-4">
         <Timeline segments={segments} onSelect={goToTurn} />
+      </div>
+      <div className="mt-4">
+        <Lanes turns={data.turns} onSelectTurn={goToTurn} />
       </div>
       <div role="group" aria-label="Show" className="mt-4 hidden gap-2 md:flex xl:hidden">
         <Button
