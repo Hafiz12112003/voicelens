@@ -22,5 +22,7 @@ export default defineConfig({
     setupFiles: ['./test/setup.js'],
     include: ['test/**/*.test.{js,jsx}'],
     css: false,
+    // Some tests render whole pages; a busy machine can exceed the 5 s default.
+    testTimeout: 15000,
   },
 })

@@ -173,7 +173,7 @@ export default function ImportCard({ onImported }) {
         <a
           href="/sample-calls.json"
           download="voicelens-sample-calls.json"
-          className="text-primary hover:underline"
+          className="text-primary underline underline-offset-2"
         >
           Download a sample file
         </a>
