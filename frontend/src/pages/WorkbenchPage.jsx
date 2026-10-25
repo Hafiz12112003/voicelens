@@ -197,7 +197,6 @@ export default function WorkbenchPage() {
           <Stat label="Avg latency" value={formatMs(stats.avg_latency_ms)} mono />
           <Stat label="Max latency" value={formatMs(stats.max_latency_ms)} mono />
         </dl>
-        <Lanes turns={visible.turns} onSelectTurn={focusTurn} />
         <FindingsPanel
           findings={visible.findings}
           activeId={activeFindingId}
@@ -227,6 +226,11 @@ export default function WorkbenchPage() {
         title="Try it"
         description="Paste one call transcript and see which rules flag it. Nothing is saved."
       />
+      {visible && (
+        <div className={cn('mb-4 transition-opacity', dim && 'opacity-60')}>
+          <Lanes turns={visible.turns} onSelectTurn={focusTurn} />
+        </div>
+      )}
       <div className="grid gap-4 lg:grid-cols-2">
         <section
           aria-labelledby="wb-input-title"
