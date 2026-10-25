@@ -1,11 +1,12 @@
 ﻿import { useEffect } from 'react'
-import { AudioLines, Gauge, Phone } from 'lucide-react'
+import { AudioLines, FlaskConical, Gauge, Phone } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils.js'
 
 const NAV = [
   { to: '/calls', label: 'Calls', icon: Phone },
   { to: '/summary', label: 'Summary', icon: Gauge },
+  { to: '/workbench', label: 'Try it', icon: FlaskConical },
 ]
 
 export default function Sidebar({ collapsed, mobileOpen, onClose }) {
@@ -53,7 +54,7 @@ export default function Sidebar({ collapsed, mobileOpen, onClose }) {
               title={collapsed ? label : undefined}
               className={({ isActive }) =>
                 cn(
-                  'flex h-10 items-center gap-3 rounded-md px-3 text-base transition-colors duration-(--dur) ease-(--ease)',
+                  'flex h-10 items-center gap-3 rounded-md px-3 text-base transition-colors duration-(--dur)ease-(--ease)',
                   isActive
                     ? 'bg-accent font-medium text-foreground'
                     : 'text-muted-foreground hover:bg-accent hover:text-foreground',

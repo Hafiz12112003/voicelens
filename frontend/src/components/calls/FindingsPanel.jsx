@@ -24,7 +24,16 @@ function evidenceText(evidence) {
   return typeof evidence === 'string' ? evidence : JSON.stringify(evidence)
 }
 
-function FindingCard({ finding, active, readOnly, onGoToTurn, onSelect, onChanged }) {
+function FindingCard({
+  finding,
+  active,
+  readOnly,
+  reviewActions,
+  showStatus,
+  onGoToTurn,
+  onSelect,
+  onChanged,
+}) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [editing, setEditing] = useState(false)
@@ -83,14 +92,16 @@ function FindingCard({ finding, active, readOnly, onGoToTurn, onSelect, onChange
           <SeverityDot severity={finding.severity} />
           <span className="font-medium">{ruleLabel(finding.rule)}</span>
         </div>
-        <span
-          className={cn(
-            'inline-flex h-5 shrink-0 items-center rounded-sm border border-border px-2 text-xs',
-            STATUS_STYLES[finding.status],
-          )}
-        >
-          {STATUS_LABELS[finding.status] ?? finding.status}
-        </span>
+        {showStatus && (
+          <span
+            className={cn(
+              'inline-flex h-5 shrink-0 items-center rounded-sm border border-border px-2 text-xs',
+              STATUS_STYLES[finding.status],
+            )}
+          >
+            {STATUS_LABELS[finding.status] ?? finding.status}
+          </span>
+        )}
       </div>
 
       <p className="mt-2 break-words text-base">{finding.explanation}</p>
@@ -116,31 +127,33 @@ function FindingCard({ finding, active, readOnly, onGoToTurn, onSelect, onChange
         </p>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant={finding.status === 'confirmed' ? 'primary' : 'outline'}
-          aria-pressed={finding.status === 'confirmed'}
-          disabled={disabled}
-          onClick={() => toggle('confirmed')}
-        >
-          Confirm
-        </Button>
-        <Button
-          size="sm"
-          variant={finding.status === 'dismissed' ? 'primary' : 'outline'}
-          aria-pressed={finding.status === 'dismissed'}
-          disabled={disabled}
-          onClick={() => toggle('dismissed')}
-        >
-          Dismiss
-        </Button>
-        <Button size="sm" variant="ghost" disabled={disabled} aria-expanded={editing} onClick={openNote}>
-          {finding.note ? 'Edit note' : 'Note'}
-        </Button>
-      </div>
+      {reviewActions && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant={finding.status === 'confirmed' ? 'primary' : 'outline'}
+            aria-pressed={finding.status === 'confirmed'}
+            disabled={disabled}
+            onClick={() => toggle('confirmed')}
+          >
+            Confirm
+          </Button>
+          <Button
+            size="sm"
+            variant={finding.status === 'dismissed' ? 'primary' : 'outline'}
+            aria-pressed={finding.status === 'dismissed'}
+            disabled={disabled}
+            onClick={() => toggle('dismissed')}
+          >
+            Dismiss
+          </Button>
+          <Button size="sm" variant="ghost" disabled={disabled} aria-expanded={editing} onClick={openNote}>
+            {finding.note ? 'Edit note' : 'Note'}
+          </Button>
+        </div>
+      )}
 
-      {editing && (
+      {reviewActions && editing && (
         <div className="mt-3">
           <label htmlFor={`note-${finding.id}`} className="sr-only">
             Note for this finding
@@ -177,6 +190,9 @@ export default function FindingsPanel({
   findings,
   activeId = null,
   readOnly,
+  reviewActions = true,
+  showStatus = true,
+  sticky = true,
   className,
   onGoToTurn,
   onSelect,
@@ -188,7 +204,9 @@ export default function FindingsPanel({
       aria-label="Findings"
       data-view="findings"
       className={cn(
-        'rounded-xl border border-border bg-card max-xl:order-first xl:sticky xl:top-4 xl:max-h-[calc(100dvh-6rem)] xl:self-start xl:overflow-y-auto',
+        'rounded-xl border border-border bg-card max-xl:order-first',
+        sticky &&
+          'xl:sticky xl:top-4 xl:max-h-[calc(100dvh-6rem)] xl:self-start xl:overflow-y-auto',
         className,
       )}
     >
@@ -203,7 +221,7 @@ export default function FindingsPanel({
           </p>
         )}
       </div>
-      {readOnly && (
+      {readOnly && reviewActions && (
         <p role="status" className="border-b border-border px-4 py-3 text-sm text-muted-foreground">
           Review actions are unavailable while you view a saved snapshot.
         </p>
@@ -218,6 +236,8 @@ export default function FindingsPanel({
               finding={finding}
               active={finding.id === activeId}
               readOnly={readOnly}
+              reviewActions={reviewActions}
+              showStatus={showStatus}
               onGoToTurn={onGoToTurn}
               onSelect={onSelect}
               onChanged={onChanged}

@@ -137,3 +137,12 @@ export function importTranscripts(input) {
     body: JSON.stringify(input),
   })
 }
+
+// Stateless: nothing is saved, so this skips write() and the snapshot refusal.
+export function analyzeCall(call) {
+  return request('/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(call),
+  })
+}

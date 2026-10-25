@@ -121,4 +121,32 @@ describe('FindingsPanel', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not save: Server error')
     expect(onChanged).not.toHaveBeenCalled()
   })
+
+  it('hides review buttons and the snapshot banner when reviewActions is false', () => {
+    setup([REPEAT], { readOnly: true, reviewActions: false })
+    expect(screen.queryByRole('button', { name: 'Confirm' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Dismiss' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Note' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Go to turn 2' })).toBeEnabled()
+  })
+
+  it('hides the status chip when showStatus is false and shows it by default', () => {
+    const { unmount } = render(
+      <FindingsPanel findings={[REPEAT]} readOnly={false} onGoToTurn={vi.fn()} onChanged={vi.fn()} />,
+    )
+    expect(screen.getByText('Open')).toBeInTheDocument()
+    unmount()
+    render(
+      <FindingsPanel
+        findings={[REPEAT]}
+        readOnly={false}
+        showStatus={false}
+        reviewActions={false}
+        onGoToTurn={vi.fn()}
+        onChanged={vi.fn()}
+      />,
+    )
+    expect(screen.queryByText('Open')).not.toBeInTheDocument()
+  })
 })

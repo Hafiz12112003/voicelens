@@ -6,6 +6,7 @@ import Skeleton from '@/components/ui/Skeleton.jsx'
 import CallInspectorPage from '@/pages/CallInspectorPage.jsx'
 import CallsPage from '@/pages/CallsPage.jsx'
 import NotFoundPage from '@/pages/NotFoundPage.jsx'
+import WorkbenchPage from '@/pages/WorkbenchPage.jsx'
 
 // Summary pulls in the charting library, so it loads only when it is opened.
 const SummaryPage = lazy(() => import('@/pages/SummaryPage.jsx'))
@@ -42,6 +43,7 @@ export default function App() {
             </Suspense>
           }
         />
+        <Route path="workbench" element={<WorkbenchPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
