@@ -8,15 +8,23 @@ import EmptyState from '@/components/states/EmptyState.jsx'
 import ErrorState from '@/components/states/ErrorState.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Skeleton from '@/components/ui/Skeleton.jsx'
+import SettingsPanel from '@/components/workbench/SettingsPanel.jsx'
 import { useApi } from '@/hooks/useApi.js'
 import { formatDuration, formatMs } from '@/lib/format.js'
 import { orderFindings, stepFinding } from '@/lib/inspector.js'
-import { exampleText, prepareInput } from '@/lib/workbench.js'
+import {
+  exampleText,
+  lanesThresholds,
+  prepareInput,
+  settingsFromFields,
+  thresholdFields,
+} from '@/lib/workbench.js'
 import { cn } from '@/lib/utils.js'
-import { analyzeCall } from '@/services/api.js'
+import { analyzeCall, getRules } from '@/services/api.js'
 
 const DEBOUNCE_MS = 400
 const HIGHLIGHT_MS = 1200
+const NO_OVERRIDES = {}
 
 function scrollBehavior() {
   const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
@@ -73,6 +81,8 @@ function Problem({ message, details }) {
 export default function WorkbenchPage() {
   const [text, setText] = useState('')
   const [debounced, setDebounced] = useState('')
+  const [overrides, setOverrides] = useState(NO_OVERRIDES)
+  const [debouncedOverrides, setDebouncedOverrides] = useState(NO_OVERRIDES)
   const inputRef = useRef(null)
   const turnNodes = useRef(new Map())
   const timer = useRef(null)
@@ -80,23 +90,36 @@ export default function WorkbenchPage() {
   const [activeFindingId, setActiveFindingId] = useState(null)
   const [fileProblem, setFileProblem] = useState(null)
 
+  // Typing in the editor and changing a setting share one debounce.
   useEffect(() => {
-    const id = setTimeout(() => setDebounced(text), DEBOUNCE_MS)
+    const id = setTimeout(() => {
+      setDebounced(text)
+      setDebouncedOverrides(overrides)
+    }, DEBOUNCE_MS)
     return () => clearTimeout(id)
-  }, [text])
+  }, [text, overrides])
 
   useEffect(() => () => clearTimeout(timer.current), [])
 
-  const prepared = useMemo(() => prepareInput(debounced), [debounced])
+  const rulesState = useApi(getRules, 'rules')
+  const rulesData = rulesState.data
+  const fields = useMemo(() => thresholdFields(rulesData?.rules), [rulesData])
+  const changed = Object.values(overrides).some((value) => String(value).trim() !== '')
+
+  const panelSettings = useMemo(() => settingsFromFields(debouncedOverrides), [debouncedOverrides])
+  const prepared = useMemo(() => prepareInput(debounced, panelSettings), [debounced, panelSettings])
+  const requestKey = `${debounced}\u0000${JSON.stringify(panelSettings)}`
   const fetcher = useCallback(
     () => (prepared.status === 'ok' ? analyzeCall(prepared.payload) : Promise.resolve(null)),
     [prepared],
   )
-  const { data, error, loading, reload } = useApi(fetcher, debounced)
+  const { data, error, loading, reload } = useApi(fetcher, requestKey)
 
   const visible = prepared.status === 'ok' && !error && data ? data : null
   const ordered = useMemo(() => orderFindings(visible?.findings), [visible])
-  const pending = text !== debounced
+  const used = visible?.settings
+  const thresholds = useMemo(() => lanesThresholds(used), [used])
+  const pending = text !== debounced || overrides !== debouncedOverrides
   const dim = pending || (loading && visible !== null)
 
   const registerTurn = useCallback((index, node) => {
@@ -146,6 +169,10 @@ export default function WorkbenchPage() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [ordered, activeFindingId, focusTurn, clearHighlight])
+
+  const changeSetting = useCallback((key, value) => {
+    setOverrides((previous) => ({ ...previous, [key]: value }))
+  }, [])
 
   function loadExample() {
     setFileProblem(null)
@@ -197,6 +224,13 @@ export default function WorkbenchPage() {
           <Stat label="Avg latency" value={formatMs(stats.avg_latency_ms)} mono />
           <Stat label="Max latency" value={formatMs(stats.max_latency_ms)} mono />
         </dl>
+        {used && (
+          <p className="mono break-words text-xs text-muted-foreground">
+            {`Settings used: ${Object.entries(used)
+              .map(([key, value]) => `${key} ${value}`)
+              .join(', ')}`}
+          </p>
+        )}
         <FindingsPanel
           findings={visible.findings}
           activeId={activeFindingId}
@@ -228,65 +262,77 @@ export default function WorkbenchPage() {
       />
       {visible && (
         <div className={cn('mb-4 transition-opacity', dim && 'opacity-60')}>
-          <Lanes turns={visible.turns} onSelectTurn={focusTurn} />
+          <Lanes turns={visible.turns} thresholds={thresholds} onSelectTurn={focusTurn} />
         </div>
       )}
       <div className="grid gap-4 lg:grid-cols-2">
-        <section
-          aria-labelledby="wb-input-title"
-          className="min-w-0 self-start rounded-xl border border-border bg-card p-4"
-        >
-          <h2 id="wb-input-title" className="text-md font-semibold">
-            Input
-          </h2>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="outline" onClick={loadExample}>
-              Load example
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => inputRef.current?.click()}>
-              Upload .json
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={text === ''}
-              onClick={() => {
-                setFileProblem(null)
-                setText('')
-              }}
-            >
-              Clear
-            </Button>
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".json"
-              aria-label="JSON file"
-              tabIndex={-1}
-              className="hidden"
-              onChange={handleFile}
+        <div className="flex min-w-0 flex-col gap-4 self-start">
+          <section
+            aria-labelledby="wb-input-title"
+            className="min-w-0 rounded-xl border border-border bg-card p-4"
+          >
+            <h2 id="wb-input-title" className="text-md font-semibold">
+              Input
+            </h2>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" onClick={loadExample}>
+                Load example
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => inputRef.current?.click()}>
+                Upload .json
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={text === ''}
+                onClick={() => {
+                  setFileProblem(null)
+                  setText('')
+                }}
+              >
+                Clear
+              </Button>
+              <input
+                ref={inputRef}
+                type="file"
+                accept=".json"
+                aria-label="JSON file"
+                tabIndex={-1}
+                className="hidden"
+                onChange={handleFile}
+              />
+            </div>
+            <label htmlFor="wb-input" className="sr-only">
+              Call JSON
+            </label>
+            <textarea
+              id="wb-input"
+              rows={24}
+              value={text}
+              spellCheck={false}
+              onChange={(event) => setText(event.target.value)}
+              className="mono mt-3 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
             />
-          </div>
-          <label htmlFor="wb-input" className="sr-only">
-            Call JSON
-          </label>
-          <textarea
-            id="wb-input"
-            rows={24}
-            value={text}
-            spellCheck={false}
-            onChange={(event) => setText(event.target.value)}
-            className="mono mt-3 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          />
-          {fileProblem && (
-            <p role="alert" className="mt-2 text-sm">
-              {fileProblem}
+            {fileProblem && (
+              <p role="alert" className="mt-2 text-sm">
+                {fileProblem}
+              </p>
+            )}
+            <p className="mt-3 text-sm text-muted-foreground">
+              {'Nothing you paste is saved. call_id, agent and source are optional here. Limits: 500 turns, 256 KB. The example is synthetic, and the rules are not validated on real calls.'}
             </p>
-          )}
-          <p className="mt-3 text-sm text-muted-foreground">
-            {'Nothing you paste is saved. call_id, agent and source are optional here. Limits: 500 turns, 256 KB. The example is synthetic, and the rules are not validated on real calls.'}
-          </p>
-        </section>
+          </section>
+          <SettingsPanel
+            fields={fields}
+            values={overrides}
+            changed={changed}
+            loading={!rulesData && !rulesState.error}
+            error={rulesData ? null : rulesState.error}
+            onChange={changeSetting}
+            onReset={() => setOverrides(NO_OVERRIDES)}
+            onRetry={rulesState.reload}
+          />
+        </div>
         <div className="min-w-0">{right}</div>
       </div>
     </>

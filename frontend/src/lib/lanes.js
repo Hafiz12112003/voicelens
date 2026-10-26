@@ -8,8 +8,16 @@ function isTime(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
 }
 
+function pickThreshold(value, fallback) {
+  return isTime(value) ? value : fallback
+}
+
 // Drawing geometry only. Latency values come from the API (latency_ms).
-export function buildLanes(turns) {
+// thresholds ({ slowMs, highMs }) only decide how gaps are graded and where the
+// dashed ticks go. Anything missing or invalid falls back to the rule defaults.
+export function buildLanes(turns, thresholds) {
+  const slowMs = pickThreshold(thresholds?.slowMs, SLOW_GAP_MS)
+  const highMs = pickThreshold(thresholds?.highMs, HIGH_GAP_MS)
   const list = turns || []
   const bars = []
   let skipped = 0
@@ -27,7 +35,7 @@ export function buildLanes(turns) {
     if (typeof ms !== 'number' || !Number.isFinite(ms) || ms <= 0 || !isTime(turn.start_ms)) continue
     const from = turn.start_ms - ms
     if (from < 0) continue
-    const level = ms > HIGH_GAP_MS ? 'high' : ms > SLOW_GAP_MS ? 'slow' : 'ok'
+    const level = ms > highMs ? 'high' : ms > slowMs ? 'slow' : 'ok'
     gaps.push({ i: turn.i, from, to: turn.start_ms, ms, level })
   }
 
@@ -47,7 +55,15 @@ export function buildLanes(turns) {
   for (const bar of bars) duration = Math.max(duration, bar.end)
   for (const gap of gaps) duration = Math.max(duration, gap.to)
 
-  return { hasTimes: bars.length > 0, bars, gaps, overlaps, skipped, duration: Math.max(duration, 1) }
+  return {
+    hasTimes: bars.length > 0,
+    bars,
+    gaps,
+    overlaps,
+    skipped,
+    duration: Math.max(duration, 1),
+    thresholds: { slowMs, highMs },
+  }
 }
 
 export function clampView(view, duration) {

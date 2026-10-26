@@ -3,9 +3,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, ZoomIn, ZoomOut } from 'lucide-re
 import Button from '@/components/ui/Button.jsx'
 import { formatMs } from '@/lib/format.js'
 import {
-  HIGH_GAP_MS,
   MIN_WINDOW_MS,
-  SLOW_GAP_MS,
   buildLanes,
   clampView,
   formatSeconds,
@@ -13,6 +11,7 @@ import {
   panView,
   zoomView,
 } from '@/lib/lanes.js'
+import { plural } from '@/lib/summary.js'
 import { cn } from '@/lib/utils.js'
 
 const W = 1000
@@ -27,9 +26,11 @@ const CUST_Y = 80
 const AXIS_Y = 124
 const H = 150
 
-export default function Lanes({ turns, onSelectTurn }) {
-  const lanes = useMemo(() => buildLanes(turns), [turns])
+export default function Lanes({ turns, thresholds, onSelectTurn }) {
+  const lanes = useMemo(() => buildLanes(turns, thresholds), [turns, thresholds])
   const [requested, setRequested] = useState(null)
+  const { slowMs, highMs } = lanes.thresholds
+  const custom = thresholds !== undefined && thresholds !== null
 
   const duration = lanes.duration
   const full = { start: 0, end: duration }
@@ -70,6 +71,9 @@ export default function Lanes({ turns, onSelectTurn }) {
   }
 
   const slowCount = lanes.gaps.filter((gap) => gap.level !== 'ok').length
+  const thresholdText = custom
+    ? `${formatSeconds(slowMs)} and ${formatSeconds(highMs)}, the thresholds used for this analysis`
+    : `${formatSeconds(slowMs)} and ${formatSeconds(highMs)}, the default rule thresholds. If the server was set to other thresholds, the ticks will not match`
 
   return (
     <section
@@ -109,7 +113,7 @@ export default function Lanes({ turns, onSelectTurn }) {
             {`Showing ${formatSeconds(view.start)} to ${formatSeconds(view.end)}`}
           </p>
           <p className="sr-only">
-            {`${lanes.bars.length} turns drawn. ${slowCount} responses slower than ${formatMs(SLOW_GAP_MS)}.`}
+            {`${plural(lanes.bars.length, 'turn')} drawn. ${plural(slowCount, 'response')} slower than ${formatMs(slowMs)}.`}
           </p>
           <div
             role="group"
@@ -158,14 +162,14 @@ export default function Lanes({ turns, onSelectTurn }) {
                 return (
                   <g key={gap.i}>
                     <rect x={seg.x} y={GAP_Y} width={seg.width} height={GAP_H} rx={2} className={cn('fill-current', tone)} />
-                    {[SLOW_GAP_MS, HIGH_GAP_MS]
+                    {[slowMs, highMs]
                       .filter((t) => gap.ms > t)
-                      .map((t) => {
+                      .map((t, index) => {
                         const at = gap.from + t
                         if (at < view.start || at > view.end) return null
                         return (
                           <line
-                            key={t}
+                            key={index}
                             x1={x(at)}
                             x2={x(at)}
                             y1={GAP_Y - 2}
@@ -239,7 +243,7 @@ export default function Lanes({ turns, onSelectTurn }) {
           </div>
 
           <p className="mt-2 text-xs text-muted-foreground">
-            {'Bars are turns. The Gap row runs from the customer finishing to the agent starting. Dashed ticks in a gap mark 1.5 s and 3 s, the default rule thresholds. Red shading is both speaking at once.'}
+            {`Bars are turns. The Gap row runs from the customer finishing to the agent starting. Dashed ticks in a gap mark ${thresholdText}. Red shading is both speaking at once.`}
           </p>
           {lanes.skipped > 0 && (
             <p className="mt-1 text-xs text-muted-foreground">
