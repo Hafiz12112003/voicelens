@@ -88,7 +88,7 @@ def test_findings_and_per_rule_counts(loaded):
     s = summary(loaded)
     assert s["findings"] == {"total": 2, "open": 2, "confirmed": 0, "dismissed": 0}
     assert [r["rule"] for r in s["per_rule"]] == RULE_ORDER
-    assert [r["total"] for r in s["per_rule"]] == [2, 0, 0, 0]
+    assert [r["total"] for r in s["per_rule"]] == [2, 0, 0, 0, 0, 0]
     assert s["per_rule"][0] == {
         "rule": "high_latency", "total": 2, "open": 2, "confirmed": 0, "dismissed": 0,
     }
@@ -160,7 +160,7 @@ def test_empty_database(client):
     assert s["findings"]["total"] == 0
     assert s["escalated_calls"] == 0
     assert s["daily"] == []
-    assert len(s["per_rule"]) == 4
+    assert len(s["per_rule"]) == 6
     assert s["accuracy"]["status"] == "no_labels"
     assert s["accuracy"]["n_items"] == 0
 

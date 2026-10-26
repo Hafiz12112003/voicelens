@@ -2,9 +2,12 @@
 import math
 
 from app.services.rules import (
+    AGENT_OVER_CUSTOMER,
+    CUSTOMER_REPEAT,
     FALSE_SUCCESS,
     HIGH_LATENCY,
     IGNORED_CONSTRAINT,
+    MIN_REPEAT_WORDS,
     REPEATED_TURN,
 )
 
@@ -114,6 +117,65 @@ RULES = [
             "Only checks the first agent turn after a failed tool event.",
             "Matches a short English phrase list and skips turns containing a negation word such as sorry or not.",
             "Cannot tell whether a later tool call succeeded.",
+        ],
+        "validated": False,
+    },
+    {
+        "id": AGENT_OVER_CUSTOMER,
+        "name": "Agent talking over customer",
+        "description": (
+            "Flags an agent turn that starts while the customer's previous turn was "
+            "still going."
+        ),
+        "severity": "Medium",
+        "applies_to": "All agents",
+        "needs": ["start_ms and end_ms on both turns of a customer-to-agent pair"],
+        "thresholds": [
+            {
+                "key": "overlap_ms",
+                "label": "Flag overlaps above",
+                "unit": "ms",
+                "type": "integer",
+                "default": 500,
+                "min": 0,
+                "max": 5000,
+            },
+        ],
+        "known_limits": [
+            "The 500 ms default is a guess, not a measured value.",
+            "Only as accurate as the timestamps you supply. Speech-to-text timestamps can be rough, so normal turn-taking may look like an overlap.",
+            "Only checks an agent turn that directly follows a customer turn. A customer interrupting the agent is not flagged.",
+            "Cannot tell a short acknowledgement from talking over the customer.",
+        ],
+        "validated": False,
+    },
+    {
+        "id": CUSTOMER_REPEAT,
+        "name": "Customer repeated themselves",
+        "description": (
+            "Flags a customer turn that says (almost) the same thing as the "
+            "customer's previous turn, which can mean the agent missed it."
+        ),
+        "severity": "Low",
+        "applies_to": "All agents",
+        "needs": [],
+        "thresholds": [
+            {
+                "key": "customer_jaccard_threshold",
+                "label": "Word overlap needed",
+                "unit": "ratio",
+                "type": "number",
+                "default": 0.8,
+                "min": 0.5,
+                "max": 1.0,
+            },
+        ],
+        "known_limits": [
+            "Compares only with the previous customer turn.",
+            f"Skips turns shorter than {MIN_REPEAT_WORDS} words, so a repeat like yes please is not caught.",
+            "Compares sets of words, so a rephrased repeat can score below the default and be missed.",
+            "Splits text on spaces, so languages written without spaces are not handled.",
+            "The customer may repeat themselves for other reasons, such as a bad line or a repeated question from the agent.",
         ],
         "validated": False,
     },

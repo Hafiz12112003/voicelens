@@ -116,13 +116,17 @@ def analyze_call(
     threshold_ms=1500,
     high_ms=3000,
     jaccard_threshold=0.8,
+    overlap_ms=500,
+    customer_jaccard_threshold=0.8,
 ):
-    """Run all four rules. Returns finding dicts sorted by turn, then rule."""
+    """Run all six rules. Returns finding dicts sorted by turn, then rule."""
     findings = []
     findings += rules.check_high_latency(turns, threshold_ms, high_ms)
     findings += rules.check_repeated_agent_turn(turns, jaccard_threshold)
     findings += rules.check_ignored_constraint(turns, agent)
     findings += rules.check_false_success_claim(turns, tool_events)
+    findings += rules.check_agent_talking_over_customer(turns, overlap_ms)
+    findings += rules.check_customer_repeated_themselves(turns, customer_jaccard_threshold)
     return sorted(findings, key=lambda f: (f["turn_index"], f["rule"]))
 
 

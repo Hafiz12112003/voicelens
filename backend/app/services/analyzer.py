@@ -41,6 +41,8 @@ def analyze_payload(obj, config):
         settings["threshold_ms"],
         settings["high_ms"],
         settings["jaccard_threshold"],
+        settings["overlap_ms"],
+        settings["customer_jaccard_threshold"],
     )
 
     gaps = dict(rules.response_gaps(turns))

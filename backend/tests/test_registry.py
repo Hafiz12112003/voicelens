@@ -4,7 +4,12 @@ from app import create_app
 from app.extensions import db
 from app.services import metrics
 from app.services.registry import RULES, rule_catalog
-from app.services.rules import check_high_latency, check_repeated_agent_turn
+from app.services.rules import (
+    check_agent_talking_over_customer,
+    check_customer_repeated_themselves,
+    check_high_latency,
+    check_repeated_agent_turn,
+)
 
 
 def test_rules_endpoint_lists_every_rule_in_order(client):
@@ -16,6 +21,8 @@ def test_rules_endpoint_lists_every_rule_in_order(client):
         "repeated_agent_turn",
         "ignored_constraint",
         "false_success_claim",
+        "agent_talking_over_customer",
+        "customer_repeated_themselves",
     ]
     for rule in rules:
         assert rule["validated"] is False
@@ -26,6 +33,10 @@ def test_rules_endpoint_lists_every_rule_in_order(client):
     assert [t["key"] for t in by_id["high_latency"]["thresholds"]] == ["threshold_ms", "high_ms"]
     assert by_id["ignored_constraint"]["thresholds"] == []
     assert by_id["false_success_claim"]["needs"] == ["tool_events in the call"]
+    assert [t["key"] for t in by_id["agent_talking_over_customer"]["thresholds"]] == ["overlap_ms"]
+    assert [t["key"] for t in by_id["customer_repeated_themselves"]["thresholds"]] == [
+        "customer_jaccard_threshold"
+    ]
 
 
 def test_rules_endpoint_latency_defaults_follow_config():
@@ -63,15 +74,25 @@ def test_catalog_does_not_leak_config_between_calls():
 
 def test_registry_defaults_match_rule_functions():
     by_id = {r["id"]: r for r in RULES}
-    latency = {t["key"]: t["default"] for t in by_id["high_latency"]["thresholds"]}
+
+    def defaults(rule_id):
+        return {t["key"]: t["default"] for t in by_id[rule_id]["thresholds"]}
+
     params = inspect.signature(check_high_latency).parameters
-    assert latency == {
+    assert defaults("high_latency") == {
         "threshold_ms": params["threshold_ms"].default,
         "high_ms": params["high_ms"].default,
     }
-    repeat = {t["key"]: t["default"] for t in by_id["repeated_agent_turn"]["thresholds"]}
     params = inspect.signature(check_repeated_agent_turn).parameters
-    assert repeat == {"jaccard_threshold": params["jaccard_threshold"].default}
+    assert defaults("repeated_agent_turn") == {
+        "jaccard_threshold": params["jaccard_threshold"].default
+    }
+    params = inspect.signature(check_agent_talking_over_customer).parameters
+    assert defaults("agent_talking_over_customer") == {"overlap_ms": params["overlap_ms"].default}
+    params = inspect.signature(check_customer_repeated_themselves).parameters
+    assert defaults("customer_repeated_themselves") == {
+        "customer_jaccard_threshold": params["customer_jaccard_threshold"].default
+    }
 
 
 def test_rule_order_is_derived_from_registry():
