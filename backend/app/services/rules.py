@@ -1,41 +1,19 @@
 ﻿import re
 
+from app.services.lexicons import DEFAULT_LANGUAGE, LEXICONS
+
 HIGH_LATENCY = "high_latency"
 REPEATED_TURN = "repeated_agent_turn"
 IGNORED_CONSTRAINT = "ignored_constraint"
 FALSE_SUCCESS = "false_success_claim"
 
-SUCCESS_PHRASES = ["booked", "confirmed", "done", "all set", "successfully"]
-NEGATION_WORDS = {
-    "not", "cannot", "cant", "couldnt", "wasnt", "didnt", "isnt", "hasnt",
-    "unable", "failed", "unfortunately", "sorry",
-}
-
-# Rule 3 lexicons (deliberately small; see README for limits)
+# Rule 3 only runs for agents whose name starts with one of these (see README for limits)
 CONSTRAINT_AGENT_PREFIXES = ("restaurant", "hotel")
-CONFIRMATION_CUES = {
-    "confirm", "confirmed", "booked", "booking", "order", "ordered",
-    "reservation", "reserved", "noted", "added", "got",
-}
-NUMBER_WORDS = {
-    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
-    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
-}
-NON_QUANTITY_FOLLOWERS = {
-    "am", "pm", "oclock", "rupees", "rupee", "rs", "dollars", "dollar", "usd",
-    "inr", "minutes", "minute", "hours", "hour", "percent",
-    "moment", "second", "seconds", "sec", "more",
-}
-VEG_WORDS = {"vegetarian", "vegan", "veg"}
-NON_VEG_ITEMS = {
-    "chicken", "mutton", "fish", "beef", "pork", "prawn", "prawns",
-    "shrimp", "lamb", "meat", "bacon",
-}
-EXCLUDABLE_ITEMS = {
-    "onion", "onions", "garlic", "nuts", "peanut", "peanuts",
-    "cheese", "egg", "eggs", "dairy", "sugar",
-}
-ITEM_NEGATORS = {"no", "without", "non", "not"}
+
+
+def _lexicon(lexicon):
+    """The phrase lists to use. English unless the caller passes another."""
+    return lexicon if lexicon is not None else LEXICONS[DEFAULT_LANGUAGE]
 
 
 def _finding(rule, severity, turn_index, evidence, explanation):
@@ -142,59 +120,63 @@ def _plain(text):
 
 # ---------- Rule 3: ignored constraint ----------
 
-def _quantities(text):
+def _quantities(text, lex):
     tokens = _plain(text).split()
     found = set()
     for pos, tok in enumerate(tokens):
         if tok.isdigit():
             n = int(tok)
-        elif tok in NUMBER_WORDS:
-            n = NUMBER_WORDS[tok]
+        elif tok in lex["number_words"]:
+            n = lex["number_words"][tok]
         else:
             continue
         if not 1 <= n <= 20:
             continue
         nxt = tokens[pos + 1] if pos + 1 < len(tokens) else ""
-        if nxt in NON_QUANTITY_FOLLOWERS:
+        if nxt in lex["non_quantity_followers"]:
             continue
         found.add(n)
     return found
 
 
-def _negated(tokens, pos):
-    return pos > 0 and tokens[pos - 1] in ITEM_NEGATORS
+def _negated(tokens, pos, lex):
+    return pos > 0 and tokens[pos - 1] in lex["item_negators"]
 
 
-def _wants_veg(c_tokens):
+def _wants_veg(c_tokens, lex):
     return any(
-        tok in VEG_WORDS and not (pos > 0 and c_tokens[pos - 1] == "non")
+        tok in lex["veg_words"] and not (pos > 0 and c_tokens[pos - 1] == lex["non_word"])
         for pos, tok in enumerate(c_tokens)
     )
 
 
-def _wants_non_smoking(c_tokens):
+def _wants_non_smoking(c_tokens, lex):
     return any(
-        tok == "smoking" and pos > 0 and c_tokens[pos - 1] == "non"
+        tok == lex["smoking_word"] and pos > 0 and c_tokens[pos - 1] == lex["non_word"]
         for pos, tok in enumerate(c_tokens)
     )
 
 
-def _excluded_items(c_tokens):
+def _excluded_items(c_tokens, lex):
     items = []
     for pos, tok in enumerate(c_tokens[:-1]):
         nxt = c_tokens[pos + 1]
-        if tok in {"no", "without"} and nxt in EXCLUDABLE_ITEMS and nxt not in items:
+        if (
+            tok in lex["exclusion_words"]
+            and nxt in lex["excludable_items"]
+            and nxt not in items
+        ):
             items.append(nxt)
     return items
 
 
-def _contradictions(customer_text, agent_text):
+def _contradictions(customer_text, agent_text, lex):
     c_tokens = _plain(customer_text).split()
     a_tokens = _plain(agent_text).split()
     results = []
 
-    c_qty = _quantities(customer_text)
-    a_qty = _quantities(agent_text)
+    c_qty = _quantities(customer_text, lex)
+    a_qty = _quantities(agent_text, lex)
     if c_qty and a_qty and not (c_qty & a_qty):
         results.append((
             "medium",
@@ -202,9 +184,9 @@ def _contradictions(customer_text, agent_text):
             "The agent confirmed a different quantity than the customer asked for.",
         ))
 
-    if _wants_veg(c_tokens):
+    if _wants_veg(c_tokens, lex):
         for pos, tok in enumerate(a_tokens):
-            if tok in NON_VEG_ITEMS and not _negated(a_tokens, pos):
+            if tok in lex["non_veg_items"] and not _negated(a_tokens, pos, lex):
                 results.append((
                     "high",
                     f'customer asked for vegetarian; agent mentioned "{tok}"',
@@ -212,9 +194,9 @@ def _contradictions(customer_text, agent_text):
                 ))
                 break
 
-    for item in _excluded_items(c_tokens):
+    for item in _excluded_items(c_tokens, lex):
         if any(
-            tok == item and not _negated(a_tokens, pos)
+            tok == item and not _negated(a_tokens, pos, lex)
             for pos, tok in enumerate(a_tokens)
         ):
             results.append((
@@ -223,9 +205,9 @@ def _contradictions(customer_text, agent_text):
                 f"The customer asked for no {item} but the agent's confirmation includes it.",
             ))
 
-    if _wants_non_smoking(c_tokens):
+    if _wants_non_smoking(c_tokens, lex):
         if any(
-            tok == "smoking" and not _negated(a_tokens, pos)
+            tok == lex["smoking_word"] and not _negated(a_tokens, pos, lex)
             for pos, tok in enumerate(a_tokens)
         ):
             results.append((
@@ -237,30 +219,31 @@ def _contradictions(customer_text, agent_text):
     return results
 
 
-def _next_confirmation(turns, pos):
+def _next_confirmation(turns, pos, lex):
     """First agent turn with a confirmation cue after turns[pos], stopping at
     the next customer turn."""
     for turn in turns[pos + 1:]:
         if turn["speaker"] == "customer":
             return None
-        if CONFIRMATION_CUES & set(_plain(turn["text"]).split()):
+        if lex["confirmation_cues"] & set(_plain(turn["text"]).split()):
             return turn
     return None
 
 
-def check_ignored_constraint(turns, agent_name):
+def check_ignored_constraint(turns, agent_name, lexicon=None):
     """Restaurant and hotel agents only. Candidate findings, not verdicts."""
     if not agent_name or not agent_name.lower().startswith(CONSTRAINT_AGENT_PREFIXES):
         return []
+    lex = _lexicon(lexicon)
     findings = []
     for pos, turn in enumerate(turns):
         if turn["speaker"] != "customer":
             continue
-        confirmation = _next_confirmation(turns, pos)
+        confirmation = _next_confirmation(turns, pos, lex)
         if confirmation is None:
             continue
         for severity, detail, explanation in _contradictions(
-            turn["text"], confirmation["text"]
+            turn["text"], confirmation["text"], lex
         ):
             findings.append(
                 _finding(
@@ -277,22 +260,23 @@ def check_ignored_constraint(turns, agent_name):
 
 # ---------- Rule 4: false success claim ----------
 
-def _claims_success(text):
+def _claims_success(text, lex):
     plain = _plain(text)
-    if set(plain.split()) & NEGATION_WORDS:
+    if set(plain.split()) & lex["negation_words"]:
         return None
     padded = f" {plain} "
-    for phrase in SUCCESS_PHRASES:
+    for phrase in lex["success_phrases"]:
         if f" {phrase} " in padded:
             return phrase
     return None
 
 
-def check_false_success_claim(turns, tool_events):
+def check_false_success_claim(turns, tool_events, lexicon=None):
     """Flag the first agent turn after a failed tool event if it claims success.
     Only runs when tool_events is present."""
     if not tool_events:
         return []
+    lex = _lexicon(lexicon)
     findings = []
     flagged_turns = set()
     for event in tool_events:
@@ -304,7 +288,7 @@ def check_false_success_claim(turns, tool_events):
         )
         if agent_turn is None or agent_turn["i"] in flagged_turns:
             continue
-        phrase = _claims_success(agent_turn["text"])
+        phrase = _claims_success(agent_turn["text"], lex)
         if phrase is None:
             continue
         flagged_turns.add(agent_turn["i"])
