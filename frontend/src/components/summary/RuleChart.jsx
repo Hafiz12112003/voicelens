@@ -13,6 +13,8 @@ const SERIES = [
 
 const ROW_HEIGHT = 40
 const AXIS_HEIGHT = 32
+// Wide enough for the longest rule label ("Customer repeated themselves").
+const LABEL_WIDTH = 188
 const TICK = { fill: 'var(--text-muted)', fontSize: 12 }
 const TOOLTIP_STYLE = {
   background: 'var(--raised)',
@@ -89,7 +91,8 @@ export default function RuleChart({ perRule }) {
                   <YAxis
                     type="category"
                     dataKey="label"
-                    width={128}
+                    width={LABEL_WIDTH}
+                    interval={0}
                     tick={TICK}
                     axisLine={false}
                     tickLine={false}

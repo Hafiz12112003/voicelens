@@ -2,6 +2,7 @@
 import summaryReal from '../fixtures/summary-real.json'
 import summarySynthetic from '../fixtures/summary-synthetic.json'
 import callsData from '../fixtures/calls.json'
+import rulesData from '../fixtures/rules.json'
 
 // Read-only fallback used when the API is unreachable. It serves the bundled
 // snapshot exactly as stored; it never computes metrics.
@@ -57,6 +58,11 @@ function matches(item, { q, agent, source, severity }) {
 // Summary page always passes a source, so users do not hit the difference.
 export function getSummary({ source } = {}) {
   return Object.hasOwn(SUMMARIES, source) ? SUMMARIES[source] : summaryAll
+}
+
+// The rule catalog as exported from the API.
+export function getRules() {
+  return rulesData
 }
 
 export function listCalls(params = {}) {

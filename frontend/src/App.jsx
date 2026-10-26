@@ -6,6 +6,7 @@ import Skeleton from '@/components/ui/Skeleton.jsx'
 import CallInspectorPage from '@/pages/CallInspectorPage.jsx'
 import CallsPage from '@/pages/CallsPage.jsx'
 import NotFoundPage from '@/pages/NotFoundPage.jsx'
+import RulesPage from '@/pages/RulesPage.jsx'
 import WorkbenchPage from '@/pages/WorkbenchPage.jsx'
 
 // Summary pulls in the charting library, so it loads only when it is opened.
@@ -44,6 +45,7 @@ export default function App() {
           }
         />
         <Route path="workbench" element={<WorkbenchPage />} />
+        <Route path="rules" element={<RulesPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

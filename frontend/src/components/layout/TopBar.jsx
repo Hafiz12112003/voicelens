@@ -22,6 +22,7 @@ function crumbsFor(pathname) {
   if (first === 'calls') return [{ label: 'Calls' }]
   if (first === 'summary') return [{ label: 'Summary' }]
   if (first === 'workbench') return [{ label: 'Try it' }]
+  if (first === 'rules') return [{ label: 'Rules' }]
   return [{ label: 'Not found' }]
 }
 

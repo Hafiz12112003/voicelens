@@ -100,6 +100,10 @@ export function getSummary({ source } = {}) {
   return read(`/summary${query({ source })}`, () => snapshot.getSummary({ source }))
 }
 
+export function getRules() {
+  return read('/rules', () => snapshot.getRules())
+}
+
 export function listCalls({ q, agent, source, severity, sort, order, page, pageSize } = {}) {
   return read(
     `/calls${query({ q, agent, source, severity, sort, order, page, page_size: pageSize })}`,

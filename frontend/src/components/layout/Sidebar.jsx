@@ -1,5 +1,5 @@
 ﻿import { useEffect } from 'react'
-import { AudioLines, FlaskConical, Gauge, Phone } from 'lucide-react'
+import { AudioLines, FlaskConical, Gauge, ListChecks, Phone } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils.js'
 
@@ -7,6 +7,7 @@ const NAV = [
   { to: '/calls', label: 'Calls', icon: Phone },
   { to: '/summary', label: 'Summary', icon: Gauge },
   { to: '/workbench', label: 'Try it', icon: FlaskConical },
+  { to: '/rules', label: 'Rules', icon: ListChecks },
 ]
 
 export default function Sidebar({ collapsed, mobileOpen, onClose }) {
