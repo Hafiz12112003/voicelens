@@ -1,11 +1,6 @@
-﻿from app.services import rules
+﻿from app.services.registry import RULE_IDS
 
-RULE_ORDER = [
-    rules.HIGH_LATENCY,
-    rules.REPEATED_TURN,
-    rules.IGNORED_CONSTRAINT,
-    rules.FALSE_SUCCESS,
-]
+RULE_ORDER = list(RULE_IDS)
 STATUSES = ("open", "confirmed", "dismissed")
 DAILY_LIMIT = 30
 
