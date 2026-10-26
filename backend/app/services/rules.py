@@ -6,9 +6,14 @@ HIGH_LATENCY = "high_latency"
 REPEATED_TURN = "repeated_agent_turn"
 IGNORED_CONSTRAINT = "ignored_constraint"
 FALSE_SUCCESS = "false_success_claim"
+AGENT_OVER_CUSTOMER = "agent_talking_over_customer"
+CUSTOMER_REPEAT = "customer_repeated_themselves"
 
 # Rule 3 only runs for agents whose name starts with one of these (see README for limits)
 CONSTRAINT_AGENT_PREFIXES = ("restaurant", "hotel")
+
+# Rule 6 skips customer turns shorter than this many words ("okay", "yes please")
+MIN_REPEAT_WORDS = 3
 
 
 def _lexicon(lexicon):
@@ -109,6 +114,72 @@ def check_repeated_agent_turn(turns, jaccard_threshold=0.8):
                         )
                     )
         prev_agent = {"i": turn["i"], "norm": norm}
+    return findings
+
+
+# ---------- Rule 5: agent talking over the customer ----------
+
+def check_agent_talking_over_customer(turns, overlap_ms=500):
+    """Flag an agent turn that starts more than overlap_ms before the customer
+    turn right before it ended. Needs timestamps on both turns. The default
+    is a guess, not a measured value, and the rule is not validated."""
+    findings = []
+    for prev, cur in zip(turns, turns[1:]):
+        if prev["speaker"] != "customer" or cur["speaker"] != "agent":
+            continue
+        end = prev.get("end_ms")
+        start = cur.get("start_ms")
+        if end is None or start is None:
+            continue
+        overlap = end - start
+        if overlap <= overlap_ms:
+            continue
+        findings.append(
+            _finding(
+                AGENT_OVER_CUSTOMER,
+                "medium",
+                cur["i"],
+                f"agent started at {start} ms, {overlap} ms before the customer "
+                f"finished at {end} ms",
+                "The agent started speaking while the customer was still talking.",
+            )
+        )
+    return findings
+
+
+# ---------- Rule 6: customer repeating themselves ----------
+
+def check_customer_repeated_themselves(turns, customer_jaccard_threshold=0.8):
+    """Compare each customer turn with the previous customer turn in the call.
+    Turns shorter than MIN_REPEAT_WORDS words are skipped. Not validated."""
+    findings = []
+    prev = None
+    for turn in turns:
+        if turn["speaker"] != "customer":
+            continue
+        norm = normalize_text(turn["text"])
+        tokens = norm.split()
+        if (
+            prev is not None
+            and len(tokens) >= MIN_REPEAT_WORDS
+            and len(prev["tokens"]) >= MIN_REPEAT_WORDS
+        ):
+            if norm == prev["norm"]:
+                similarity = 1.0
+            else:
+                similarity = jaccard(tokens, prev["tokens"])
+            if similarity >= customer_jaccard_threshold:
+                findings.append(
+                    _finding(
+                        CUSTOMER_REPEAT,
+                        "low",
+                        turn["i"],
+                        f'"{turn["text"]}" repeats customer turn {prev["i"]} '
+                        f"(similarity {similarity:.2f})",
+                        "The customer repeated themselves, which can mean the agent missed or ignored what they said.",
+                    )
+                )
+        prev = {"i": turn["i"], "norm": norm, "tokens": tokens}
     return findings
 
 
