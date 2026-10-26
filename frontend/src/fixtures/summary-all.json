@@ -44,6 +44,26 @@
         "rule": "false_success_claim",
         "tn": 0,
         "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "agent_talking_over_customer",
+        "tn": 0,
+        "tp": 0
+      },
+      {
+        "fn": 0,
+        "fp": 0,
+        "items": 0,
+        "precision": null,
+        "recall": null,
+        "rule": "customer_repeated_themselves",
+        "tn": 0,
+        "tp": 0
       }
     ],
     "status": "no_labels"
@@ -121,6 +141,20 @@
       "open": 1,
       "rule": "false_success_claim",
       "total": 1
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 0,
+      "rule": "agent_talking_over_customer",
+      "total": 0
+    },
+    {
+      "confirmed": 0,
+      "dismissed": 0,
+      "open": 0,
+      "rule": "customer_repeated_themselves",
+      "total": 0
     }
   ],
   "scope": {

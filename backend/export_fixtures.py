@@ -48,6 +48,8 @@ def export_fixtures(out_dir=OUT, data_dir=DATA_DIR):
                 summary = get(client, f"/api/v1/summary?source={source}")
                 write(os.path.join(out_dir, f"summary-{source}.json"), summary)
 
+            write(os.path.join(out_dir, "rules.json"), get(client, "/api/v1/rules"))
+
             calls = get(client, "/api/v1/calls?page_size=100&sort=started_at&order=desc")
             if calls["total_pages"] > 1:
                 raise SystemExit(
@@ -58,7 +60,11 @@ def export_fixtures(out_dir=OUT, data_dir=DATA_DIR):
             for item in calls["items"]:
                 detail = get(client, f"/api/v1/calls/{item['call_id']}")
                 write(os.path.join(out_dir, "calls", f"{item['call_id']}.json"), detail)
-            return {"summaries": len(SUMMARY_SOURCES), "calls": len(calls["items"])}
+            return {
+                "summaries": len(SUMMARY_SOURCES),
+                "rules": 1,
+                "calls": len(calls["items"]),
+            }
         finally:
             db.session.remove()
             db.drop_all()
@@ -67,7 +73,7 @@ def export_fixtures(out_dir=OUT, data_dir=DATA_DIR):
 def main():
     result = export_fixtures()
     print(
-        f"Wrote {result['summaries']} summary files, calls.json and "
+        f"Wrote {result['summaries']} summary files, rules.json, calls.json and "
         f"{result['calls']} call files to {OUT}"
     )
 

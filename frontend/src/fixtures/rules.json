@@ -1,0 +1,162 @@
+{
+  "languages": [
+    {
+      "id": "en",
+      "name": "English"
+    }
+  ],
+  "rules": [
+    {
+      "applies_to": "All agents",
+      "description": "Flags an agent turn that starts too long after the customer finished speaking.",
+      "id": "high_latency",
+      "known_limits": [
+        "Only as accurate as the timestamps you supply.",
+        "Measures customer end to next agent start, only for a customer turn followed directly by an agent turn.",
+        "Overlapping turns (a negative gap) are skipped, not counted as latency.",
+        "The default thresholds are not checked against what callers actually notice."
+      ],
+      "name": "High latency",
+      "needs": [
+        "start_ms and end_ms on both turns of a customer-to-agent pair"
+      ],
+      "severity": "Medium above the base threshold, high above the high threshold.",
+      "thresholds": [
+        {
+          "default": 1500,
+          "key": "threshold_ms",
+          "label": "Flag gaps above",
+          "max": 60000,
+          "min": 100,
+          "type": "integer",
+          "unit": "ms"
+        },
+        {
+          "default": 3000,
+          "key": "high_ms",
+          "label": "High severity above",
+          "max": 120000,
+          "min": 100,
+          "type": "integer",
+          "unit": "ms"
+        }
+      ],
+      "validated": false
+    },
+    {
+      "applies_to": "All agents",
+      "description": "Flags an agent turn that says (almost) the same thing as the agent's previous turn.",
+      "id": "repeated_agent_turn",
+      "known_limits": [
+        "Compares only with the previous agent turn.",
+        "Compares sets of words, so word order is ignored and different sentences with the same words can match.",
+        "Splits text on spaces, so languages written without spaces are not handled.",
+        "A deliberate repeat, such as reading back an order number, is flagged too."
+      ],
+      "name": "Repeated agent turn",
+      "needs": [],
+      "severity": "Medium",
+      "thresholds": [
+        {
+          "default": 0.8,
+          "key": "jaccard_threshold",
+          "label": "Word overlap needed",
+          "max": 1.0,
+          "min": 0.5,
+          "type": "number",
+          "unit": "ratio"
+        }
+      ],
+      "validated": false
+    },
+    {
+      "applies_to": "Agents whose name starts with restaurant or hotel",
+      "description": "Flags an agent confirmation that contradicts what the customer just asked for: a different quantity, a non-vegetarian item for a vegetarian request, an excluded ingredient, or a smoking room for a non-smoking request.",
+      "id": "ignored_constraint",
+      "known_limits": [
+        "Only runs for agent names starting with restaurant or hotel.",
+        "Uses small English word lists: quantities 1 to 20, vegetarian words, a few excluded items and non-smoking.",
+        "Only checks the first agent turn with a confirmation word before the next customer turn.",
+        "Findings are candidates for review, not verdicts: the customer may have changed the request later."
+      ],
+      "name": "Ignored constraint",
+      "needs": [],
+      "severity": "High for dietary, exclusion and smoking contradictions, medium for a quantity mismatch.",
+      "thresholds": [],
+      "validated": false
+    },
+    {
+      "applies_to": "All agents",
+      "description": "Flags an agent turn that claims success right after a tool call failed.",
+      "id": "false_success_claim",
+      "known_limits": [
+        "Needs tool_events. CSV imports and phone calls have none, so this rule cannot run on them.",
+        "Only checks the first agent turn after a failed tool event.",
+        "Matches a short English phrase list and skips turns containing a negation word such as sorry or not.",
+        "Cannot tell whether a later tool call succeeded."
+      ],
+      "name": "False success claim",
+      "needs": [
+        "tool_events in the call"
+      ],
+      "severity": "High",
+      "thresholds": [],
+      "validated": false
+    },
+    {
+      "applies_to": "All agents",
+      "description": "Flags an agent turn that starts while the customer's previous turn was still going.",
+      "id": "agent_talking_over_customer",
+      "known_limits": [
+        "The 500 ms default is a guess, not a measured value.",
+        "Only as accurate as the timestamps you supply. Speech-to-text timestamps can be rough, so normal turn-taking may look like an overlap.",
+        "Only checks an agent turn that directly follows a customer turn. A customer interrupting the agent is not flagged.",
+        "Cannot tell a short acknowledgement from talking over the customer."
+      ],
+      "name": "Agent talking over customer",
+      "needs": [
+        "start_ms and end_ms on both turns of a customer-to-agent pair"
+      ],
+      "severity": "Medium",
+      "thresholds": [
+        {
+          "default": 500,
+          "key": "overlap_ms",
+          "label": "Flag overlaps above",
+          "max": 5000,
+          "min": 0,
+          "type": "integer",
+          "unit": "ms"
+        }
+      ],
+      "validated": false
+    },
+    {
+      "applies_to": "All agents",
+      "description": "Flags a customer turn that says (almost) the same thing as the customer's previous turn, which can mean the agent missed it.",
+      "id": "customer_repeated_themselves",
+      "known_limits": [
+        "Compares only with the previous customer turn.",
+        "Skips turns shorter than 3 words, so a repeat like yes please is not caught.",
+        "Compares sets of words, so a rephrased repeat can score below the default and be missed.",
+        "Splits text on spaces, so languages written without spaces are not handled.",
+        "The customer may repeat themselves for other reasons, such as a bad line or a repeated question from the agent."
+      ],
+      "name": "Customer repeated themselves",
+      "needs": [],
+      "severity": "Low",
+      "thresholds": [
+        {
+          "default": 0.8,
+          "key": "customer_jaccard_threshold",
+          "label": "Word overlap needed",
+          "max": 1.0,
+          "min": 0.5,
+          "type": "number",
+          "unit": "ratio"
+        }
+      ],
+      "validated": false
+    }
+  ]
+}
