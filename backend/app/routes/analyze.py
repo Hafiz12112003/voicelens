@@ -23,12 +23,7 @@ def analyze():
         raise BadRequest("Send a JSON body containing one call object")
 
     try:
-        result = analyze_payload(
-            payload,
-            cfg["LATENCY_THRESHOLD_MS"],
-            cfg["LATENCY_HIGH_MS"],
-            cfg["ANALYZE_MAX_TURNS"],
-        )
+        result = analyze_payload(payload, cfg)
     except TranscriptError as exc:
         return api_error(
             422,

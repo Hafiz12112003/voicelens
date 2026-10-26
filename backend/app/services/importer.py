@@ -109,11 +109,18 @@ def validate_call(obj, position=0):
     return errors
 
 
-def analyze_call(turns, agent, tool_events=None, threshold_ms=1500, high_ms=3000):
+def analyze_call(
+    turns,
+    agent,
+    tool_events=None,
+    threshold_ms=1500,
+    high_ms=3000,
+    jaccard_threshold=0.8,
+):
     """Run all four rules. Returns finding dicts sorted by turn, then rule."""
     findings = []
     findings += rules.check_high_latency(turns, threshold_ms, high_ms)
-    findings += rules.check_repeated_agent_turn(turns)
+    findings += rules.check_repeated_agent_turn(turns, jaccard_threshold)
     findings += rules.check_ignored_constraint(turns, agent)
     findings += rules.check_false_success_claim(turns, tool_events)
     return sorted(findings, key=lambda f: (f["turn_index"], f["rule"]))

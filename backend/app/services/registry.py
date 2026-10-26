@@ -1,4 +1,5 @@
 ﻿import copy
+import math
 
 from app.services.rules import (
     FALSE_SUCCESS,
@@ -26,6 +27,7 @@ RULES = [
                 "key": "threshold_ms",
                 "label": "Flag gaps above",
                 "unit": "ms",
+                "type": "integer",
                 "default": 1500,
                 "min": 100,
                 "max": 60000,
@@ -34,6 +36,7 @@ RULES = [
                 "key": "high_ms",
                 "label": "High severity above",
                 "unit": "ms",
+                "type": "integer",
                 "default": 3000,
                 "min": 100,
                 "max": 120000,
@@ -62,6 +65,7 @@ RULES = [
                 "key": "jaccard_threshold",
                 "label": "Word overlap needed",
                 "unit": "ratio",
+                "type": "number",
                 "default": 0.8,
                 "min": 0.5,
                 "max": 1.0,
@@ -136,3 +140,54 @@ def rule_catalog(config):
             threshold["min"] = min(threshold["min"], default)
             threshold["max"] = max(threshold["max"], default)
     return catalog
+
+
+def _check_value(spec, value):
+    """None when the value is acceptable, otherwise the problem as text."""
+    if isinstance(value, bool):
+        ok = False
+    elif spec["type"] == "integer":
+        ok = isinstance(value, int)
+    else:
+        ok = isinstance(value, (int, float)) and math.isfinite(value)
+    word = "a whole number" if spec["type"] == "integer" else "a number"
+    problem = f"must be {word} between {spec['min']} and {spec['max']}"
+    if not ok or not spec["min"] <= value <= spec["max"]:
+        return problem
+    return None
+
+
+def resolve_settings(config, raw):
+    """Merge request settings over the defaults. Returns (settings, errors).
+    raw is the optional "settings" object of a request (None means defaults)."""
+    specs = {
+        threshold["key"]: threshold
+        for rule in rule_catalog(config)
+        for threshold in rule["thresholds"]
+    }
+    settings = {key: spec["default"] for key, spec in specs.items()}
+    if raw is None:
+        return settings, []
+    if not isinstance(raw, dict):
+        return settings, ["settings must be an object"]
+
+    errors = []
+    for key, value in raw.items():
+        spec = specs.get(key)
+        if spec is None:
+            errors.append(
+                f"settings.{key} is not a known setting (known: {', '.join(sorted(specs))})"
+            )
+            continue
+        problem = _check_value(spec, value)
+        if problem:
+            errors.append(f"settings.{key} {problem}")
+            continue
+        settings[key] = value
+
+    if not errors and settings["high_ms"] < settings["threshold_ms"]:
+        errors.append(
+            f"settings.high_ms ({settings['high_ms']}) must not be below "
+            f"settings.threshold_ms ({settings['threshold_ms']})"
+        )
+    return settings, errors

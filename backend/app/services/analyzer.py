@@ -1,19 +1,22 @@
 ﻿from app.services import rules
 from app.services.importer import (
     TranscriptError,
+    _parse_dt,
     analyze_call,
     validate_call,
 )
-from app.services.importer import _parse_dt
 from app.services.metrics import latency_stats
+from app.services.registry import resolve_settings
 
 
-def analyze_payload(obj, threshold_ms, high_ms, max_turns):
-    """Stateless analysis of one call. Validates, runs the rules, returns a
-    call-detail-shaped dict. Saves nothing. Raises TranscriptError."""
+def analyze_payload(obj, config):
+    """Stateless analysis of one call. Validates, runs the rules with the
+    request's optional settings, returns a call-detail-shaped dict. Saves
+    nothing. Raises TranscriptError."""
     if not isinstance(obj, dict):
         raise TranscriptError(["body must be a single call object"])
 
+    max_turns = config["ANALYZE_MAX_TURNS"]
     raw_turns = obj.get("turns")
     if isinstance(raw_turns, list) and len(raw_turns) > max_turns:
         raise TranscriptError(
@@ -21,6 +24,8 @@ def analyze_payload(obj, threshold_ms, high_ms, max_turns):
         )
 
     errors = validate_call(obj)
+    settings, setting_errors = resolve_settings(config, obj.get("settings"))
+    errors = errors + setting_errors
     if errors:
         raise TranscriptError(errors)
 
@@ -29,7 +34,14 @@ def analyze_payload(obj, threshold_ms, high_ms, max_turns):
     turns = obj["turns"]
     tool_events = obj.get("tool_events") or []
 
-    found = analyze_call(turns, agent, tool_events, threshold_ms, high_ms)
+    found = analyze_call(
+        turns,
+        agent,
+        tool_events,
+        settings["threshold_ms"],
+        settings["high_ms"],
+        settings["jaccard_threshold"],
+    )
 
     gaps = dict(rules.response_gaps(turns))
     out_turns = [
@@ -68,6 +80,7 @@ def analyze_payload(obj, threshold_ms, high_ms, max_turns):
         "source": obj["source"],
         "started_at": started.isoformat() + "Z" if started else None,
         "outcome": obj.get("outcome"),
+        "settings": settings,
         "stats": {
             "duration_ms": max(ends) if ends else None,
             "turn_count": len(turns),
