@@ -11,6 +11,8 @@ import WorkbenchPage from '@/pages/WorkbenchPage.jsx'
 
 // Summary pulls in the charting library, so it loads only when it is opened.
 const SummaryPage = lazy(() => import('@/pages/SummaryPage.jsx'))
+// The design page is a showcase, so it loads only when it is opened too.
+const DesignPage = lazy(() => import('@/pages/DesignPage.jsx'))
 
 function SummaryFallback() {
   return (
@@ -23,6 +25,19 @@ function SummaryFallback() {
       >
         {[0, 1, 2, 3, 4, 5].map((key) => (
           <Skeleton key={key} className="h-28 rounded-xl" />
+        ))}
+      </div>
+    </>
+  )
+}
+
+function DesignFallback() {
+  return (
+    <>
+      <PageHeader title="Design" />
+      <div aria-busy="true" aria-label="Loading design page" className="flex flex-col gap-4">
+        {[0, 1, 2].map((key) => (
+          <Skeleton key={key} className="h-40 rounded-xl" />
         ))}
       </div>
     </>
@@ -46,6 +61,14 @@ export default function App() {
         />
         <Route path="workbench" element={<WorkbenchPage />} />
         <Route path="rules" element={<RulesPage />} />
+        <Route
+          path="design"
+          element={
+            <Suspense fallback={<DesignFallback />}>
+              <DesignPage />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

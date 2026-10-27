@@ -1,0 +1,38 @@
+﻿// The two themes' colour tokens, copied from src/styles/tokens.css, for tests.
+export const DARK_TOKENS = {
+  '--bg': '#0b0d12',
+  '--surface': '#11141b',
+  '--raised': '#161a23',
+  '--border': '#232834',
+  '--border-strong': '#2e3545',
+  '--input': '#2e3545',
+  '--text': '#e6e9f0',
+  '--text-muted': '#8b93a7',
+  '--text-faint': '#5d6579',
+  '--accent': '#4c8dff',
+  '--accent-soft': 'rgba(76,141,255,.12)',
+  '--on-accent': '#0b0d12',
+  '--high': '#f0616d',
+  '--medium': '#f5a524',
+  '--low': '#6b7280',
+  '--success': '#3fb950',
+}
+
+export const LIGHT_TOKENS = {
+  '--bg': '#f6f7f9',
+  '--surface': '#ffffff',
+  '--raised': '#eef1f5',
+  '--border': '#dfe3ea',
+  '--border-strong': '#c5ccd8',
+  '--input': '#7e879b',
+  '--text': '#12151c',
+  '--text-muted': '#566073',
+  '--text-faint': '#7d869a',
+  '--accent': '#1f56d8',
+  '--accent-soft': 'rgba(31,86,216,.10)',
+  '--on-accent': '#ffffff',
+  '--high': '#cb2424',
+  '--medium': '#a94d08',
+  '--low': '#6b7280',
+  '--success': '#16723a',
+}
