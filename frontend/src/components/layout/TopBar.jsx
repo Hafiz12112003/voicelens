@@ -1,5 +1,6 @@
-﻿import { Menu, PanelLeft } from 'lucide-react'
+﻿import { Menu, Moon, PanelLeft, Sun } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTheme } from '@/hooks/useTheme.js'
 import { cn } from '@/lib/utils.js'
 
 const ICON_BUTTON =
@@ -35,6 +36,8 @@ export default function TopBar({
 }) {
   const { pathname } = useLocation()
   const crumbs = crumbsFor(pathname)
+  const { theme, toggle } = useTheme()
+  const ThemeIcon = theme === 'light' ? Moon : Sun
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4 md:px-6">
@@ -87,6 +90,15 @@ export default function TopBar({
           ))}
         </ol>
       </nav>
+
+      <button
+        type="button"
+        aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+        onClick={toggle}
+        className={ICON_BUTTON}
+      >
+        <ThemeIcon aria-hidden="true" className="size-4" />
+      </button>
 
       <span className="inline-flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
         <span

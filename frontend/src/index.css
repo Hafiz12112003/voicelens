@@ -25,7 +25,7 @@
   --color-popover: var(--raised);
   --color-popover-foreground: var(--text);
   --color-primary: var(--accent);
-  --color-primary-foreground: var(--bg);
+  --color-primary-foreground: var(--on-accent);
   --color-secondary: var(--raised);
   --color-secondary-foreground: var(--text);
   --color-muted: var(--raised);
@@ -36,7 +36,7 @@
   --color-destructive: var(--high);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
-  --color-input: var(--border-strong);
+  --color-input: var(--input);
   --color-ring: var(--accent);
   --color-faint: var(--text-faint);
   --color-high: var(--high);
@@ -87,6 +87,10 @@
 
   html {
     color-scheme: dark;
+  }
+
+  html.light {
+    color-scheme: light;
   }
 
   body {

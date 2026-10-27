@@ -2,6 +2,24 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Apply the saved or system theme before the first paint so there is no flash.
+      // Keep this in step with src/lib/theme.js.
+      (function () {
+        var saved = null;
+        try {
+          saved = localStorage.getItem('voicelens.theme');
+        } catch (e) {}
+        var light =
+          saved === 'light' ||
+          (saved !== 'dark' &&
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: light)').matches);
+        var root = document.documentElement;
+        root.classList.remove('dark', 'light');
+        root.classList.add(light ? 'light' : 'dark');
+      })();
+    </script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234c8dff'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="VoiceLens: a call-quality inspector for AI voice agents. An independent prototype inspired by Zudu's public product." />
