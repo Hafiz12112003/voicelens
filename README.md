@@ -10,6 +10,30 @@ VoiceLens is an independent prototype inspired by Zudu's public product. It is a
 - **No AI in the analysis.** The rules are plain code over text and timestamps. There is no language model, no paid API and no network call in the path that produces a finding.
 - **No raw audio.** Only transcript text is stored or shown. Audio files and the `backend/data/drafts/` folder are git-ignored.
 
+## Screenshots
+
+Taken by hand in Microsoft Edge on Windows, with the bundled synthetic data. The desktop screenshots are about 1366 px wide and the phone-width one is about 390 px wide. Nothing in them is real call data.
+
+![The Summary page in the dark theme, with six metric cards](docs/screenshots/summary-dark.png)
+
+*Summary, dark theme, synthetic calls.*
+
+![The call inspector for a synthetic restaurant call: header stats, a timeline strip with one high and one medium finding, and the conversation lanes view](docs/screenshots/inspector-dark.png)
+
+*Call inspector, dark theme: stats, timeline and lanes.*
+
+![The same call inspector scrolled down to the transcript and the findings panel](docs/screenshots/inspector-findings-dark.png)
+
+*Call inspector, dark theme: transcript and findings side by side.*
+
+![The Try it page with the example call analysed: lanes view, stats and the settings used](docs/screenshots/try-it-dark.png)
+
+*Try it, dark theme: the example call, analysed without saving anything.*
+
+![The Design page at phone width in the light theme, showing the colour tokens](docs/screenshots/design-phone-light.png)
+
+*Design page, light theme, phone width.*
+
 ## Pages
 
 | Page | What it does |

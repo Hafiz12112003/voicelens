@@ -1,5 +1,6 @@
 ﻿import json
 import pathlib
+import re
 
 from app.services.registry import RULES
 
@@ -39,3 +40,15 @@ def test_readme_lists_every_rule_and_links_the_accuracy_doc():
     for rule in RULES:
         assert rule["id"] in text, rule["id"]
     assert "docs/accuracy.md" in text
+
+
+def test_readme_screenshots_exist_and_have_alt_text():
+    text = read("README.md")
+    images = re.findall(r"!\[([^\]]*)\]\(([^)]+)\)", text)
+    assert images, "README should show screenshots"
+    for alt, target in images:
+        if target.startswith("http"):
+            continue
+        assert alt.strip(), f"no alt text for {target}"
+        path = ROOT.joinpath(*target.split("/"))
+        assert path.is_file() and path.stat().st_size > 0, f"missing image: {target}"
