@@ -13,6 +13,7 @@ const STATUS_STYLES = {
   confirmed: 'text-success',
   dismissed: 'text-muted-foreground',
 }
+const DEFAULT_READ_ONLY_MESSAGE = 'Review actions are unavailable while you view a saved snapshot.'
 
 function ruleLabel(rule) {
   const text = String(rule || '').replace(/_/g, ' ')
@@ -190,6 +191,7 @@ export default function FindingsPanel({
   findings,
   activeId = null,
   readOnly,
+  readOnlyMessage = DEFAULT_READ_ONLY_MESSAGE,
   reviewActions = true,
   showStatus = true,
   sticky = true,
@@ -223,7 +225,7 @@ export default function FindingsPanel({
       </div>
       {readOnly && reviewActions && (
         <p role="status" className="border-b border-border px-4 py-3 text-sm text-muted-foreground">
-          Review actions are unavailable while you view a saved snapshot.
+          {readOnlyMessage}
         </p>
       )}
       {ordered.length === 0 ? (

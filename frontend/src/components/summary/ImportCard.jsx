@@ -2,6 +2,7 @@
 import { FileUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Button from '@/components/ui/Button.jsx'
+import { useReadOnly } from '@/hooks/useReadOnly.js'
 import { useSnapshotMode } from '@/hooks/useSnapshotMode.js'
 import { plural } from '@/lib/summary.js'
 import { cn } from '@/lib/utils.js'
@@ -17,13 +18,14 @@ function hasAcceptedExtension(name) {
 }
 
 export default function ImportCard({ onImported }) {
-  const readOnly = useSnapshotMode()
+  const snapshot = useSnapshotMode()
+  const serverReadOnly = useReadOnly()
   const inputRef = useRef(null)
   const [dragging, setDragging] = useState(false)
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
   const [problem, setProblem] = useState(null)
-  const disabled = readOnly || busy
+  const disabled = snapshot || serverReadOnly || busy
 
   async function upload(file) {
     setResult(null)
@@ -110,9 +112,15 @@ export default function ImportCard({ onImported }) {
         />
       </div>
 
-      {readOnly && (
+      {snapshot && (
         <p role="status" className="mt-3 text-sm text-muted-foreground">
           Importing is unavailable while you view a saved snapshot.
+        </p>
+      )}
+      {!snapshot && serverReadOnly && (
+        <p role="status" className="mt-3 text-sm text-muted-foreground">
+          Importing is turned off on this public demo. You can still paste a transcript on the Try
+          it page.
         </p>
       )}
 

@@ -9,7 +9,7 @@ export default function SnapshotBanner({ visible, onRetry }) {
     >
       <WifiOff aria-hidden="true" className="size-4 shrink-0 text-medium" />
       <p className="min-w-0 flex-1 text-foreground">
-        Server unreachable. You are viewing a saved read-only snapshot.
+        Server unreachable or waking up. You are viewing a saved read-only snapshot.
       </p>
       <button
         type="button"

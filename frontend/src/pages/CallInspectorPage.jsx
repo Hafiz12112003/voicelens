@@ -12,6 +12,7 @@ import ErrorState from '@/components/states/ErrorState.jsx'
 import Button from '@/components/ui/Button.jsx'
 import Skeleton from '@/components/ui/Skeleton.jsx'
 import { useApi } from '@/hooks/useApi.js'
+import { useReadOnly } from '@/hooks/useReadOnly.js'
 import { useSnapshotMode } from '@/hooks/useSnapshotMode.js'
 import { formatDuration } from '@/lib/format.js'
 import { orderFindings, stepFinding, timelineSegments } from '@/lib/inspector.js'
@@ -19,6 +20,8 @@ import { cn } from '@/lib/utils.js'
 import { getCall } from '@/services/api.js'
 
 const HIGHLIGHT_MS = 1200
+const SNAPSHOT_REVIEW_MESSAGE = 'Review actions are unavailable while you view a saved snapshot.'
+const SERVER_REVIEW_MESSAGE = 'Reviewing findings is turned off on this public demo.'
 
 function formatMs(ms) {
   if (ms === null || ms === undefined) return '\u2014'
@@ -75,6 +78,7 @@ export default function CallInspectorPage() {
   const fetcher = useCallback(() => getCall(callId), [callId])
   const { data, error, reload } = useApi(fetcher, callId)
   const snapshot = useSnapshotMode()
+  const serverReadOnly = useReadOnly()
 
   const turnNodes = useRef(new Map())
   const timer = useRef(null)
@@ -244,7 +248,8 @@ export default function CallInspectorPage() {
         <FindingsPanel
           findings={data.findings}
           activeId={activeFindingId}
-          readOnly={snapshot}
+          readOnly={snapshot || serverReadOnly}
+          readOnlyMessage={snapshot ? SNAPSHOT_REVIEW_MESSAGE : SERVER_REVIEW_MESSAGE}
           className={view === 'transcript' ? 'md:max-xl:hidden' : undefined}
           onGoToTurn={goToTurn}
           onSelect={setActiveFindingId}

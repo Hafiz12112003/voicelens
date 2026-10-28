@@ -3,8 +3,10 @@
 const BASE = (import.meta.env.VITE_API_BASE || '/api/v1').replace(/\/+$/, '')
 const FORCED_SNAPSHOT = import.meta.env.VITE_API_MODE === 'snapshot'
 const OFFLINE_STATUSES = [502, 503, 504]
+const DEFAULT_TIMEOUT_MS = 8000
 const READ_ONLY_MESSAGE =
   'The server is offline, so this action is unavailable. You are viewing a saved snapshot.'
+const TIMEOUT_MESSAGE = 'The server took too long to respond'
 
 export class ApiError extends Error {
   constructor(message, { status = 0, details = [] } = {}) {
@@ -13,6 +15,12 @@ export class ApiError extends Error {
     this.status = status
     this.details = details
   }
+}
+
+// Read at call time so tests (and a rebuilt env) can change it.
+function timeoutMs() {
+  const value = Number(import.meta.env.VITE_API_TIMEOUT_MS)
+  return Number.isFinite(value) && value > 0 ? value : DEFAULT_TIMEOUT_MS
 }
 
 // Snapshot mode: reads come from the bundled snapshot because the API is down.
@@ -53,21 +61,35 @@ function query(params) {
 }
 
 async function request(path, options) {
-  let response
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs())
   try {
-    response = await fetch(`${BASE}${path}`, options)
-  } catch {
-    throw new ApiError('Cannot reach the server', { status: 0 })
+    let response
+    try {
+      response = await fetch(`${BASE}${path}`, { ...options, signal: controller.signal })
+    } catch {
+      throw new ApiError(
+        controller.signal.aborted ? TIMEOUT_MESSAGE : 'Cannot reach the server',
+        { status: 0 },
+      )
+    }
+    let body = null
+    try {
+      body = await response.json()
+    } catch {
+      if (controller.signal.aborted) throw new ApiError(TIMEOUT_MESSAGE, { status: 0 })
+    }
+    if (!response.ok) {
+      const error = body?.error
+      throw new ApiError(error?.message || `Request failed (${response.status})`, {
+        status: response.status,
+        details: error?.details || [],
+      })
+    }
+    return body
+  } finally {
+    clearTimeout(timer)
   }
-  const body = await response.json().catch(() => null)
-  if (!response.ok) {
-    const error = body?.error
-    throw new ApiError(error?.message || `Request failed (${response.status})`, {
-      status: response.status,
-      details: error?.details || [],
-    })
-  }
-  return body
 }
 
 async function read(path, fromSnapshot) {
@@ -94,6 +116,11 @@ async function write(path, options) {
 
 export function getHealth() {
   return request('/health')
+}
+
+// { read_only: boolean }. True on the public deploy (READ_ONLY=1 on the server).
+export function getMode() {
+  return request('/mode')
 }
 
 export function getSummary({ source } = {}) {
