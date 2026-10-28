@@ -45,7 +45,9 @@ Taken by hand in Microsoft Edge on Windows, with the bundled synthetic data. The
 | Rules | Every rule, its settings and its known limits. |
 | Design | The colour tokens, a live contrast check and the components, in the active theme. |
 
-There is a light and a dark theme. The app follows your system setting until you pick one with the toggle in the top bar, then remembers your choice. If the API cannot be reached, the app shows a saved read-only snapshot of the bundled synthetic data and says so in a banner.
+There is a light and a dark theme. The app follows your system setting until you pick one with the toggle in the top bar, then remembers your choice.
+
+If the API cannot be reached, or does not answer within 8 seconds, the app shows a saved read-only snapshot of the bundled synthetic data and says so in a banner with a Retry button. When the server runs with `READ_ONLY` on, importing calls and reviewing findings are switched off in the app, with a message that says why.
 
 ## The six rules
 
@@ -63,7 +65,7 @@ Every rule is unvalidated, and each has known limits. The full list is on the Ru
 ## Stack
 
 - **Frontend:** React 19, JavaScript, Vite 8, React Router 7, Tailwind CSS 4, Recharts, lucide-react, Vitest and React Testing Library.
-- **Backend:** Python 3.12, Flask 3, Flask-SQLAlchemy (SQLAlchemy pinned to 2.0.x), SQLite, pytest.
+- **Backend:** Python 3.12, Flask 3, Flask-SQLAlchemy (SQLAlchemy pinned to 2.0.x), SQLite, pytest, and gunicorn for production.
 - The backend computes every finding and latency number. The frontend displays them.
 
 ## Quick start
@@ -105,10 +107,12 @@ Everything has a default, so no configuration is needed to run locally.
 | `CORS_ORIGINS` | `http://localhost:5173` | Allowed browser origins, comma separated. |
 | `LATENCY_THRESHOLD_MS` | `1500` | Responses slower than this are flagged. |
 | `LATENCY_HIGH_MS` | `3000` | Responses slower than this are high severity. |
+| `READ_ONLY` | off | Set to `1`, `true`, `yes` or `on` to make importing calls and reviewing findings return 403. Reads and `POST /analyze` keep working. Meant for a public demo. |
 | `VITE_API_BASE` | `/api/v1` | Where the frontend finds the API. |
 | `VITE_API_MODE` | live | Set to `snapshot` to force the bundled read-only snapshot. |
+| `VITE_API_TIMEOUT_MS` | `8000` | How long the frontend waits for the API before it falls back to the saved snapshot. |
 
-The backend reads these from the environment, or from a `.env` file next to `backend/config.py`. Vite reads the `VITE_` ones from a `.env` file in the `frontend` folder.
+The backend reads its variables from the environment, or from a `.env` file next to `backend/config.py`. Vite reads the `VITE_` ones from a `.env` file in the `frontend` folder.
 
 ## Importing calls
 
@@ -143,13 +147,33 @@ All paths are under `/api/v1`. Errors look like `{"error": {"code": 422, "messag
 | Request | Purpose |
 | --- | --- |
 | `GET /health` | Liveness check. |
+| `GET /mode` | `{"read_only": true}` when the server runs with `READ_ONLY` on, otherwise `false`. The frontend uses it to switch off import and review. |
 | `GET /rules` | The rule catalog with settings, defaults, limits, and the languages that have phrase lists. |
-| `POST /analyze` | Analyse one call without saving it. Optional `settings`: `threshold_ms`, `high_ms`, `jaccard_threshold`, `overlap_ms`, `customer_jaccard_threshold`. Limits: 256 KB and 500 turns. |
-| `POST /import` | Import a call or a list of calls, as a JSON body or an uploaded `.json` or `.csv` file. |
+| `POST /analyze` | Analyse one call without saving it. Optional `settings`: `threshold_ms`, `high_ms`, `jaccard_threshold`, `overlap_ms`, `customer_jaccard_threshold`. Limits: 256 KB and 500 turns. Stays open when `READ_ONLY` is on. |
+| `POST /import` | Import a call or a list of calls, as a JSON body or an uploaded `.json` or `.csv` file. Returns 403 when `READ_ONLY` is on. |
 | `GET /calls` | List calls. Parameters: `q`, `agent`, `source`, `severity`, `sort`, `order`, `page`, `page_size`. |
 | `GET /calls/<call_id>` | One call: stats, turns with latency, tool events and findings. |
-| `PATCH /findings/<id>` | Set `status` (`open`, `confirmed` or `dismissed`) and/or `note`. |
+| `PATCH /findings/<id>` | Set `status` (`open`, `confirmed` or `dismissed`) and/or `note`. Returns 403 when `READ_ONLY` is on. |
 | `GET /summary` | Metrics and the accuracy section. `?source=real`, `synthetic` or `all` (default `real`). |
+
+## Deployment
+
+The repository is set up for a public read-only demo: the API on Render's free tier and the frontend on Vercel. `render.yaml` and `frontend/vercel.json` hold the settings. They describe the setup; they do not mean a public copy is running.
+
+**API on Render.**
+
+- `render.yaml` defines one free Python web service built from the `backend` folder. It starts `gunicorn wsgi:app --workers 1 --threads 2 --bind 0.0.0.0:$PORT` with `READ_ONLY=1` and `PYTHON_VERSION=3.12.9`. gunicorn does not run on Windows, so use `python run.py` locally.
+- Render asks for `CORS_ORIGINS` when the Blueprint is first created. Give it the frontend's origin, for example `https://your-app.vercel.app`, with no trailing slash. Afterwards, change it in the Render dashboard.
+- Render's free tier spins a service down after 15 minutes without traffic, and its disk is not kept. So `backend/wsgi.py` fills an empty database from `backend/data` on every start. Any review a visitor made is gone after a restart, which does not matter here because `READ_ONLY` blocks reviews anyway.
+- The first request after a spin-down is slow. The frontend gives up after 8 seconds, shows the saved snapshot and offers Retry.
+
+**Frontend on Vercel.**
+
+- Import the repository and set the Root Directory to `frontend`, with the Vite framework preset.
+- Set `VITE_API_BASE` to the API address plus `/api/v1`, for example `https://your-api.onrender.com/api/v1`. Vite reads it at build time, so redeploy after changing it.
+- `frontend/vercel.json` sends every path to `index.html`, so a reload on a React Router URL does not give a 404.
+
+The frontend's address is not known until it is deployed. Deploy the API first with a temporary `CORS_ORIGINS`, deploy the frontend, then set `CORS_ORIGINS` to the real address.
 
 ## Tests
 
@@ -176,14 +200,33 @@ The bundled snapshot is regenerated with `python export_fixtures.py` from the `b
 
 ## Project layout
 
+```text
+backend/
+  app/            Flask app: routes, services (rules, analyzer, importer, seeder), models
+  data/           synthetic.json, real_excerpts.json, labels.json (drafts/ is git-ignored)
+  tests/          pytest suite
+  config.py       settings read from the environment
+  run.py          development server
+  wsgi.py         production entry point, seeds an empty database
+  seed.py         loads backend/data into the database
+  export_fixtures.py   regenerates the frontend snapshot
+frontend/
+  src/            components, pages, hooks, lib, services (API client and snapshot), fixtures
+  test/           Vitest tests
+  public/         sample-calls.json
+  vercel.json     single-page-app rewrite
+docs/             accuracy.md and the README screenshots
+render.yaml       Render Blueprint for the API
+```
+
 ## Known limitations
 
 - The latency chips in the transcript use a fixed 1.5 s cutoff, even when you change the thresholds on the Try it page.
 - The lanes view in the call inspector always marks 1.5 s and 3 s, because the call API does not return the thresholds a call was analysed with.
 - In the dark theme, field and outline-button borders measure 1.50:1 against the 3:1 guideline for interface components. The "normal" gap bars in the lanes view measure about 2.9:1 in dark and 2.6:1 in light. The Design page shows the live contrast numbers.
 - A saved call is not analysed again when a rule changes. See [docs/accuracy.md](docs/accuracy.md).
-- There is no login. Anyone who can reach the server can import calls and review findings.
-- The data is a single SQLite file.
+- There is no login. Unless `READ_ONLY` is on, anyone who can reach the server can import calls and review findings.
+- The data is a single SQLite file. On Render's free tier it is rebuilt from `backend/data` on every start.
 
 ## Out of scope
 
