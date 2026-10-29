@@ -44,14 +44,12 @@ In the app, each finding has a "Go to turn" button that scrolls the transcript t
 
 ## How it works
 
-```mermaid
-flowchart LR
-  subgraph saved["Saved calls"]
-    A["Import JSON or CSV"] --> B["Six rules"] --> C[("SQLite")] --> D["Flask API"] --> E["React app"]
-  end
-  subgraph tryit["Try it"]
-    F["Paste one call"] --> G["POST /analyze"] --> H["Six rules"] --> I["Findings shown, nothing saved"]
-  end
+```text
+Saved calls
+  Import (JSON or CSV) -> six rules -> SQLite -> Flask API -> React app
+
+Try it
+  Paste one call -> POST /analyze -> six rules -> findings shown, nothing saved
 ```
 
 ## Why it is built this way
