@@ -1,6 +1,66 @@
 ﻿# VoiceLens
 
+**See where an AI voice agent failed the customer, and the exact turn where it happened.**
+
+[![Live demo](https://img.shields.io/badge/live%20demo-open-2ea44f)](https://voicelens-two.vercel.app)
+![Data: synthetic only](https://img.shields.io/badge/data-synthetic%20only-orange)
+![Rules: unvalidated](https://img.shields.io/badge/rules-unvalidated-lightgrey)
+![React 19](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
+![Flask 3](https://img.shields.io/badge/Flask-3-000000?logo=flask&logoColor=white)
+
 VoiceLens is an independent prototype inspired by Zudu's public product. It is a call-quality inspector for AI voice agents: it imports call transcripts (JSON or CSV), runs six deterministic rules, flags the places where the agent may have failed the customer, and links every finding to the exact transcript turn as evidence. A reviewer can confirm or dismiss each finding.
+
+**Live demo (read-only):** https://voicelens-two.vercel.app. Open the Try it page and paste your own transcript. The API runs on a free tier that sleeps when idle, so the first load can take up to a minute. The app shows a saved snapshot with a Retry button while it wakes up.
+
+![The call inspector for a synthetic restaurant call: header stats, a timeline strip with one high and one medium finding, and the conversation lanes view](docs/screenshots/inspector-dark.png)
+
+## At a glance
+
+| | |
+| --- | --- |
+| Rules | 6, all plain code over text and timestamps |
+| AI in the analysis | None. No language model, no paid API |
+| Bundled data | 5 synthetic calls, written by hand |
+| Accuracy number | None, on purpose. The rules are not validated on real calls |
+| Pages | Calls, Call inspector, Summary, Try it, Rules, Design |
+| Public deploy | Read-only: importing and reviewing are switched off |
+
+## A finding, end to end
+
+This is a call from the bundled data (`synthetic-reservation-001`), and the finding VoiceLens raises on it:
+
+```text
+Turn 0  Agent     Hello, what date would you like to reserve?
+Turn 1  Customer  Next Friday evening
+Turn 2  Agent     What date would you like to reserve?
+Turn 3  Customer  I said next Friday evening
+Turn 4  Agent     What date would you like to reserve?
+```
+
+- **Finding 1, medium, `repeated_agent_turn`, turn 2:** the agent said almost the same thing again instead of moving the call forward. Evidence: it repeats turn 0 (similarity 0.88).
+- **Finding 2, medium, `repeated_agent_turn`, turn 4:** the same, repeating turn 2 (similarity 1.00).
+
+In the app, each finding has a "Go to turn" button that scrolls the transcript to that turn. You can confirm it, dismiss it, or add a note.
+
+## How it works
+
+```mermaid
+flowchart LR
+  subgraph saved["Saved calls"]
+    A["Import JSON or CSV"] --> B["Six rules"] --> C[("SQLite")] --> D["Flask API"] --> E["React app"]
+  end
+  subgraph tryit["Try it"]
+    F["Paste one call"] --> G["POST /analyze"] --> H["Six rules"] --> I["Findings shown, nothing saved"]
+  end
+```
+
+## Why it is built this way
+
+- **Deterministic rules.** The same transcript always gives the same findings, and every finding can be traced to a rule and a turn. There is no model to second-guess.
+- **The backend owns every number.** Findings and latencies are computed in Flask. The frontend only displays them, so the two can never disagree.
+- **Honest about accuracy.** The Summary page says "No labels yet" until real calls are hand-labelled. See [docs/accuracy.md](docs/accuracy.md).
+- **Safe to leave public.** With `READ_ONLY` on, the server refuses imports and reviews, and the app switches those controls off and says why.
+- **Works when the API is down.** If the API does not answer within 8 seconds, the app shows a saved snapshot of the synthetic data and offers Retry.
 
 ## What this is, and what it is not
 
@@ -17,10 +77,6 @@ Taken by hand in Microsoft Edge on Windows, with the bundled synthetic data. The
 ![The Summary page in the dark theme, with six metric cards](docs/screenshots/summary-dark.png)
 
 *Summary, dark theme, synthetic calls.*
-
-![The call inspector for a synthetic restaurant call: header stats, a timeline strip with one high and one medium finding, and the conversation lanes view](docs/screenshots/inspector-dark.png)
-
-*Call inspector, dark theme: stats, timeline and lanes.*
 
 ![The same call inspector scrolled down to the transcript and the findings panel](docs/screenshots/inspector-findings-dark.png)
 
@@ -158,7 +214,7 @@ All paths are under `/api/v1`. Errors look like `{"error": {"code": 422, "messag
 
 ## Deployment
 
-The repository is set up for a public read-only demo: the API on Render's free tier and the frontend on Vercel. `render.yaml` and `frontend/vercel.json` hold the settings. They describe the setup; they do not mean a public copy is running.
+The public demo is deployed as a read-only copy: the API on Render's free tier and the frontend on Vercel. `render.yaml` and `frontend/vercel.json` hold the settings.
 
 **API on Render.**
 
@@ -173,7 +229,7 @@ The repository is set up for a public read-only demo: the API on Render's free t
 - Set `VITE_API_BASE` to the API address plus `/api/v1`, for example `https://your-api.onrender.com/api/v1`. Vite reads it at build time, so redeploy after changing it.
 - `frontend/vercel.json` sends every path to `index.html`, so a reload on a React Router URL does not give a 404.
 
-The frontend's address is not known until it is deployed. Deploy the API first with a temporary `CORS_ORIGINS`, deploy the frontend, then set `CORS_ORIGINS` to the real address.
+The frontend's address is not known until it is deployed. Deploy the API first with a temporary `CORS_ORIGINS`, deploy the frontend, then set `CORS_ORIGINS` to the real address. Preview deployments on other addresses are blocked by `CORS_ORIGINS` and fall back to the snapshot.
 
 ## Tests
 
